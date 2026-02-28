@@ -17,7 +17,7 @@ export default async function AuthLayout({
   if (session) redirect("/");
 
   return (
-    <div className="relative z-10 flex w-full max-w-7xl flex-col lg:flex-row">
+    <div className="flex w-full items-center justify-center max-w-[100em] flex-col lg:flex-row">
       {/* Form Side */}
       <div className="flex w-full items-center justify-center px-6 py-12 lg:w-1/2">
         {children}

@@ -14,7 +14,7 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-   plan: planEnum("plan").default("FREE").notNull(),
+  plan: planEnum("plan").default("FREE").notNull(),
 });
 
 export const session = pgTable(
@@ -76,9 +76,28 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+export const project = pgTable("project", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+})
+
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  projects: many(project)
+}));
+
+export const projectRelations = relations(project, ({ one }) => ({
+  user: one(user, {
+    fields: [project.userId],
+    references: [user.id]
+  })
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

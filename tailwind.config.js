@@ -3,6 +3,9 @@ export default {
   darkMode: ['class'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-nunito)"],
+      },
       backgroundImage: {
         'gradient-primary': 'linear-gradient(to right, #2563eb, #7c3aed)',
       },

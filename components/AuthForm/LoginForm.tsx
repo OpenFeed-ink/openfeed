@@ -72,7 +72,7 @@ export function LoginForm() {
         toast.error(error.message || "unkown error")
         return;
       }
-      router.replace("/");
+      router.replace("/projects");
     });
   };
 
