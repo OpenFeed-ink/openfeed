@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Roboto } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner"
 import "./globals.css";
+
+const roboto = Roboto({ subsets: ['latin'], variable: '--font-sans' });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,11 +26,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={roboto.variable}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-linear-to-br from-slate-50 via-white to-teal-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-teal-950/20">
+
+          {/* Animated background blobs (shared) */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -left-4 top-1/4 h-72 w-72 animate-blob rounded-full bg-teal-200/30 mix-blend-multiply blur-xl filter dark:bg-teal-900/20" />
+            <div className="absolute -right-4 top-1/3 h-72 w-72 animate-blob animation-delay-2000 rounded-full bg-cyan-200/30 mix-blend-multiply blur-xl filter dark:bg-cyan-900/20" />
+            <div className="absolute bottom-1/4 left-20 h-72 w-72 animate-blob animation-delay-4000 rounded-full bg-emerald-200/30 mix-blend-multiply blur-xl filter dark:bg-emerald-900/20" />
+          </div>
+          {children}
+        </main>
+        <Toaster />
       </body>
     </html>
   );

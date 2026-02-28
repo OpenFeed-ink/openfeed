@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1772215014565,
+      "tag": "0000_swift_swarm",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772266673707,
+      "tag": "0001_superb_ultimatum",
+      "breakpoints": true
+    }
+  ]
+}
