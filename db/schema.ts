@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, index, pgEnum, varchar, uuid, real, uniqueIndex, integer } from "drizzle-orm/pg-core";
 
 export const planEnum = pgEnum('plan', ["FREE", 'BASIC', 'PRO', 'BUSINESS', 'ENTERPRISE', 'OS']);
 
@@ -85,19 +85,119 @@ export const project = pgTable("project", {
     .references(() => user.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 })
+export type ProjectType = typeof project.$inferSelect
 
+
+export const featureStatusEnum = pgEnum("feature_statu", [
+  "under_review",
+  "planned",
+  "in_progress",
+  "done",
+  "closed",
+])
+
+export const feature = pgTable("feature", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+
+  status: featureStatusEnum("status")
+    .default("under_review")
+    .notNull(),
+  upvotesCount: integer("upvotes_count").default(0).notNull(),
+
+  authorName: varchar("author_name", { length: 255 }),
+  authorEmail: varchar("author_email", { length: 255 }),
+
+  authorId: text("author_id")
+    .references(() => user.id, { onDelete: "cascade" }),
+
+  aiSummary: text("ai_summary"),
+  priorityScore: real("priority_score"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+})
+
+export const upvote = pgTable(
+  "upvotes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    featureId: uuid("feature_id")
+      .notNull()
+      .references(() => feature.id, { onDelete: "cascade" }),
+
+    voterEmail: varchar("voter_email", { length: 255 }),
+    voterToken: varchar("voter_token", { length: 255 }).notNull(),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  }, (table) => [
+    uniqueIndex("unique_feature_voter")
+      .on(table.featureId, table.voterToken)
+  ]
+)
+
+export const comment = pgTable("comments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  featureId: uuid("feature_id")
+    .notNull()
+    .references(() => feature.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  authorName: varchar("author_name", { length: 255 }),
+  autherId: text("auther_id").references(() => user.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+})
+
+export const featureRelations = relations(feature, ({ one, many }) => ({
+  project: one(project, {
+    fields: [feature.projectId],
+    references: [project.id]
+  }),
+  author: one(user, {
+    fields: [feature.authorId],
+    references: [user.id]
+  }),
+  upvotes: many(upvote),
+  comments: many(comment),
+}))
+
+export const commentRelations = relations(comment, ({ one }) => ({
+  author: one(user, {
+    fields: [comment.autherId],
+    references: [user.id]
+  }),
+  feature: one(feature, {
+    fields: [comment.featureId],
+    references: [feature.id]
+  })
+}))
+
+export const upvoteRelations = relations(upvote, ({ one }) => ({
+  features: one(feature, {
+    fields: [upvote.featureId],
+    references: [feature.id]
+  })
+}))
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
-  projects: many(project)
+  projects: many(project),
+  comments: many(comment)
 }));
 
-export const projectRelations = relations(project, ({ one }) => ({
+export const projectRelations = relations(project, ({ one, many }) => ({
   user: one(user, {
     fields: [project.userId],
     references: [user.id]
-  })
+  }),
+  features: many(feature)
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

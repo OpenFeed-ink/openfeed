@@ -41,10 +41,12 @@ export const UpsertProject = ({ projectData, title = "New Project" }: { title?: 
     if (state.status === "SUCCESS" && !projectData) {
       setOpen(false)
       router.push(`/projects/${state.message}`);
+      return;
     }
     if (state.status === 'SUCCESS' && projectData) {
       toast.success(`${projectData.name} has been updated.`)
       setOpen(false)
+      return;
     }
   }, [state]);
 

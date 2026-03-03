@@ -1,0 +1,1 @@
+ALTER TABLE "feature" ADD COLUMN "upvotes_count" integer DEFAULT 0 NOT NULL;

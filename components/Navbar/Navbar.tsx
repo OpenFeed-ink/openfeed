@@ -1,21 +1,15 @@
 import * as motion from "motion/react-client";
+import { Logo } from "@/components/Logo";
+import { UserMenu } from "../userMenu/UserMenu";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Logo } from "@/components/Logo";
-import { Settings, User } from "lucide-react";
-import { LogOutDropdownMenuItem, ModeToggleDropdownMenuItem } from "../DropdownMenuItems/DropdownMenuItems";
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
 
 
-export function Navbar(user: { name: string, email: string, avatar?: string }) {
-
+export function Navbar(user: { name: string, email: string, image?: string }) {
 
   const initials = user.name
     .split(" ")
@@ -37,41 +31,16 @@ export function Navbar(user: { name: string, email: string, avatar?: string }) {
         </div>
 
         {/* User menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-              <Avatar className="h-9 w-9">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="bg-teal-100 text-teal-900 dark:bg-teal-900 dark:text-teal-100">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuLabel>
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{user.name}</p>
-                <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-            >
-              <User className="mr-2 h-4 w-4" />
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </DropdownMenuItem>
-            <ModeToggleDropdownMenuItem />
-
-            <DropdownMenuSeparator />
-            <LogOutDropdownMenuItem />
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <UserMenu user={user} >
+          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={user.image} alt={user.name} />
+              <AvatarFallback className="bg-teal-100 text-teal-900 dark:bg-teal-900 dark:text-teal-100">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </UserMenu>
       </div>
     </motion.nav>
   );

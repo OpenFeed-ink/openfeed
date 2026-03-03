@@ -69,7 +69,7 @@ export default async function page() {
 
   return (
     <div className="w-full">
-      <Navbar name={name} email={email} avatar={image ?? undefined} />
+      <Navbar name={name} email={email} image={image ?? undefined} />
       <motion.div
         variants={containerVariants}
         initial="hidden"

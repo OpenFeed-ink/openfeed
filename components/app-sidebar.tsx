@@ -1,9 +1,5 @@
-"use client"
-
-import * as React from "react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import {
@@ -11,191 +7,94 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { TerminalSquareIcon, BotIcon, BookOpenIcon, Settings2Icon, LifeBuoyIcon, SendIcon, FrameIcon, PieChartIcon, MapIcon, TerminalIcon } from "lucide-react"
-import { Logo } from "./Logo"
+import { LifeBuoyIcon, Lightbulb, Map, FileText, PaintRoller, Users, Brain } from "lucide-react"
+import { ProjectSwitcher } from "./project-switcher"
+import { ProjectType } from "@/db/schema"
 
-const data = {
+
+export function AppSidebar({ project, allProjects, user }: {
+  project: ProjectType,
+  allProjects: ProjectType[],
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Playground",
-      url: "#",
-      icon: (
-        <TerminalSquareIcon
-        />
-      ),
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: (
-        <BotIcon
-        />
-      ),
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: (
-        <BookOpenIcon
-        />
-      ),
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: (
-        <Settings2Icon
-        />
-      ),
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Support",
-      url: "#",
-      icon: (
-        <LifeBuoyIcon
-        />
-      ),
-    },
-    {
-      title: "Feedback",
-      url: "#",
-      icon: (
-        <SendIcon
-        />
-      ),
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: (
-        <FrameIcon
-        />
-      ),
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: (
-        <PieChartIcon
-        />
-      ),
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: (
-        <MapIcon
-        />
-      ),
-    },
-  ],
-}
+    name: string;
+    email: string;
+    avatar?: string;
+  }
+}) {
+  const data = {
+    navMain: [
+      {
+        title: "Feature Requests",
+        url: `/projects/${project.id}/feature-requests`,
+        icon: (
+          <Lightbulb />
+        ),
+        isActive: true,
+      },
+      {
+        title: "Roadmap",
+        url: `/projects/${project.id}/roadmap`,
+        icon: (
+          <Map />
+        ),
+      },
+      {
+        title: "Changelog",
+        url: `/projects/${project.id}/changelog`,
+        icon: (
+          <FileText />
+        ),
+      },
+    ],
+    navSecondary: [
+      {
+        title: "Support",
+        url: "/suuport",
+        icon: (
+          <LifeBuoyIcon
+          />
+        ),
+      },
+    ],
+    projects: [
+      {
+        title: "Widget Builder",
+        url: `/projects/${project.id}/widget-builder`,
+        icon: (
+          <PaintRoller
+          />
+        ),
+      },
+      {
+        title: "Team",
+        url: `/projects/${project.id}/team`,
+        icon: (
+          <Users />
+        ),
+      },
+      {
+        title: "AI Config",
+        url: `/projects/${project.id}/ai`,
+        icon: (
+          <Brain />
+        ),
+      },
+    ],
+  }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar variant="inset">
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Logo/>
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Open Feed</span>
-                  <span className="truncate text-xs">Enterprise</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <ProjectSwitcher projects={allProjects} selectedProject={project} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain items={data.navMain} title="Collect Feedback" />
+        <NavMain items={data.projects} title="Project" />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   )
