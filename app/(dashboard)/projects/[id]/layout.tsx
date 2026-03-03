@@ -10,6 +10,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from 'next/navigation'
 import { headers } from "next/headers";
 import { databaseDrizzle } from "@/db";
+import { UserProject } from "@/type";
 
 export default async function ProjectLayout({
   children,
@@ -18,7 +19,7 @@ export default async function ProjectLayout({
   children: React.ReactNode;
   params: Promise<{ id: string }>
 }>) {
-  const projectId = await params
+  const {id} = await params
 
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -26,17 +27,25 @@ export default async function ProjectLayout({
 
   if (!session?.user.id) return redirect("/signin")
 
-  const projects = await databaseDrizzle.query.project.findMany({
-    where: (p, ops) => ops.eq(p.userId, session.user.id),
+  const userProjects:UserProject[] = await databaseDrizzle.query.usersProjects.findMany({
+    where: (up, ops) => ops.eq(up.userId, session.user.id),
+    columns:{
+      role:true,
+    },
+    with:{
+      project:true
+    }
   })
-  const selectedProject = projects.find(p => p.id === projectId.id)
+
+
+  const selectedProject = userProjects.find(p => p.project.id === id)
 
   if (!selectedProject) redirect("/projects")
 
 
   return (
     <SidebarProvider>
-      <AppSidebar project={selectedProject} allProjects={projects} user={session.user} />
+     <AppSidebar user={session.user} userProject={selectedProject} allProjects={userProjects} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">

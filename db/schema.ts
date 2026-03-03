@@ -1,6 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index, pgEnum, varchar, uuid, real, uniqueIndex, integer } from "drizzle-orm/pg-core";
-
+import { pgTable, text, timestamp, boolean, index, pgEnum, varchar, uuid, real, uniqueIndex, integer, primaryKey, unique, AnyPgColumn } from "drizzle-orm/pg-core";
 export const planEnum = pgEnum('plan', ["FREE", 'BASIC', 'PRO', 'BUSINESS', 'ENTERPRISE', 'OS']);
 
 export const user = pgTable("user", {
@@ -80,11 +79,25 @@ export const project = pgTable("project", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+})
+// ADMIN: full access
+// MEMBER: Can administer Ideas (manage submissions, votes, comments) but cannot change project or billing settings.
+
+export const roleEnum = pgEnum('role', ["ADMIN", 'MEMBER']);
+
+export const usersProjects = pgTable("users_projects", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-})
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  role: roleEnum("role")
+    .notNull(),
+}, (t) => [primaryKey({ columns: [t.userId, t.projectId] })])
+
+
 export type ProjectType = typeof project.$inferSelect
 
 
@@ -144,15 +157,59 @@ export const upvote = pgTable(
 
 export const comment = pgTable("comments", {
   id: uuid("id").defaultRandom().primaryKey(),
-
   featureId: uuid("feature_id")
     .notNull()
     .references(() => feature.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   authorName: varchar("author_name", { length: 255 }),
   authorId: text("author_id").references(() => user.id, { onDelete: "cascade" }),
+  isPinned: boolean("is_pinned").default(false).notNull(),
+  parentId: uuid("parent_id").references((): AnyPgColumn => comment.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 })
+
+export const tag = pgTable("tag", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 50 }).notNull(),
+  color: varchar("color", { length: 7 }).notNull().default("#14b8a6"), // hex color
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => [
+  unique("tag_project_name_unique").on(t.projectId, t.name),
+]);
+
+
+export const tagRelations = relations(tag, ({ one, many }) => ({
+  project: one(project, {
+    fields: [tag.projectId],
+    references: [project.id],
+  }),
+  features: many(featureTags),
+}));
+
+export const featureTags = pgTable("feature_tags", {
+  featureId: uuid("feature_id")
+    .notNull()
+    .references(() => feature.id, { onDelete: "cascade" }),
+  tagId: uuid("tag_id")
+    .notNull()
+    .references(() => tag.id, { onDelete: "cascade" }),
+}, (t) => [
+  primaryKey({ columns: [t.featureId, t.tagId] }),
+]);
+
+export const featureTagsRelations = relations(featureTags, ({ one }) => ({
+  feature: one(feature, {
+    fields: [featureTags.featureId],
+    references: [feature.id],
+  }),
+  tag: one(tag, {
+    fields: [featureTags.tagId],
+    references: [tag.id],
+  }),
+}));
 
 export const featureRelations = relations(feature, ({ one, many }) => ({
   project: one(project, {
@@ -165,9 +222,10 @@ export const featureRelations = relations(feature, ({ one, many }) => ({
   }),
   upvotes: many(upvote),
   comments: many(comment),
-}))
+  tags: many(featureTags),
+}));
 
-export const commentRelations = relations(comment, ({ one }) => ({
+export const commentRelations = relations(comment, ({ one, many }) => ({
   author: one(user, {
     fields: [comment.authorId],
     references: [user.id]
@@ -175,8 +233,16 @@ export const commentRelations = relations(comment, ({ one }) => ({
   feature: one(feature, {
     fields: [comment.featureId],
     references: [feature.id]
-  })
-}))
+  }),
+  parent: one(comment, {
+    fields: [comment.parentId],
+    references: [comment.id],
+    relationName: "comment_replies",
+  }),
+  replies: many(comment, {
+    relationName: "comment_replies",
+  }),
+}));
 
 export const upvoteRelations = relations(upvote, ({ one }) => ({
   features: one(feature, {
@@ -188,15 +254,23 @@ export const upvoteRelations = relations(upvote, ({ one }) => ({
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
-  projects: many(project),
-  comments: many(comment)
+  comments: many(comment),
+  usersProjects: many(usersProjects),
 }));
 
-export const projectRelations = relations(project, ({ one, many }) => ({
+export const usersProjectsRelations = relations(usersProjects, ({ one }) => ({
   user: one(user, {
-    fields: [project.userId],
+    fields: [usersProjects.userId],
     references: [user.id]
   }),
+  project: one(project, {
+    fields: [usersProjects.projectId],
+    references: [project.id]
+  })
+}))
+
+export const projectRelations = relations(project, ({ many }) => ({
+  usersProjects: many(usersProjects),
   features: many(feature)
 }));
 

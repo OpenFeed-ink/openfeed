@@ -26,12 +26,17 @@ export default async function page() {
   if (!session?.user.id) return redirect("/signin")
   const { name, email, image } = session.user
 
-  const projects = await databaseDrizzle.query.project.findMany({
-    where: (u, ops) => ops.eq(u.userId, session.user.id),
+  const userProjects = await databaseDrizzle.query.usersProjects.findMany({
+    where: (up, ops) => ops.eq(up.userId, session.user.id),
+    columns: {
+      role: true,
+    },
+    with: {
+      project: true
+    }
   })
 
-
-  if (!projects) {
+  if (!userProjects) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -89,7 +94,7 @@ export default async function page() {
         </div>
 
         {/* Empty State */}
-        {projects.length === 0 ? (
+        {userProjects.length === 0 ? (
           <motion.div
             variants={itemVariants}
             className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border py-16 mt-6"
@@ -110,27 +115,29 @@ export default async function page() {
             variants={containerVariants}
             className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6"
           >
-            {projects.map((project) => (
+            {userProjects.map(({ project }) => (
               <motion.div key={project.id} variants={itemVariants}>
-                <Link href={`/projects/${project.id}`}>
-                  <Card
-                    className="group relative cursor-pointer overflow-hidden transition-all duration-300 hover:border-teal-500/50 hover:shadow-lg"
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start justify-between">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-100 dark:bg-teal-900/30">
-                          <FolderKanban className="h-5 w-5 text-teal-600 dark:text-teal-400" />
-                        </div>
-                        <div className="flex gap-1">
-                          <UpsertProject projectData={project} />
-                          <DeleteProject id={project.id} />
-                        </div>
+                <Card
+                  className="group relative cursor-pointer overflow-hidden transition-all duration-300 hover:border-teal-500/50 hover:shadow-lg"
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-100 dark:bg-teal-900/30">
+                        <FolderKanban className="h-5 w-5 text-teal-600 dark:text-teal-400" />
                       </div>
+                      <div className="flex gap-1">
+                        <UpsertProject projectData={project} />
+                        <DeleteProject id={project.id} />
+                      </div>
+                    </div>
+                    <Link href={`/projects/${project.id}`}>
                       <CardTitle className="mt-3 line-clamp-1 text-lg">{project.name}</CardTitle>
                       <CardDescription className="line-clamp-2">
                         {project.description || "No Description"}
                       </CardDescription>
-                    </CardHeader>
+                    </Link>
+                  </CardHeader>
+                  <Link href={`/projects/${project.id}`}>
                     <CardContent>
                       <div className="flex items-center justify-between text-sm">
                         <span className="rounded bg-muted px-2 py-1 font-mono text-xs">
@@ -139,9 +146,9 @@ export default async function page() {
                         <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                       </div>
                     </CardContent>
-                  </Card>
+                  </Link>
+                </Card>
 
-                </Link>
               </motion.div>
             ))}
           </motion.div>

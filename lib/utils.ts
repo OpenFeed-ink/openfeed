@@ -9,3 +9,49 @@ export function cn(...inputs: ClassValue[]) {
 export function isUUID(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(value)
 }
+
+type Membership = {
+  userId: string;
+  role: "ADMIN" | "MEMBER";
+
+}
+
+const primission = {
+  "ADMIN": {
+    role: "admin",
+    billing: true,
+    deleteProject: true,
+    upsertFeature: true,
+    deleteAnyFeature: true,
+    addComment: true,
+    deleteComment: true,
+  },
+  "MEMBER": {
+    role: "member",
+    billing: false,
+    deleteProject: false,
+    upsertFeature: true,
+    deleteAnyFeature: false,
+    addComment: true,
+    deleteComment: true,
+  },
+  "ANONYMOUS": {
+    role: "anonymous",
+    billing: false,
+    deleteProject: false,
+    upsertFeature: true,
+    deleteAnyFeature: false,
+    addComment: true,
+    deleteComment: false,
+  },
+}
+
+export function permission(memberships: Membership[], authorId?: string | null, userId?: string | null) {
+  const membership = memberships.find(m => m.userId === authorId)
+  if (!membership) {
+    return primission['ANONYMOUS']
+  }
+  if (userId === authorId) return primission['ADMIN']
+
+  return primission[membership.role]
+}

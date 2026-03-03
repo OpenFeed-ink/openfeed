@@ -14,18 +14,14 @@ import {
 import { Logo } from "./Logo"
 import { Button } from "@/components/ui/button"
 import Link from 'next/link'
-
-type Project = {
-  id: string,
-  name: string,
-}
+import { UserProject } from "@/type"
 
 export function ProjectSwitcher({
   projects,
-  selectedProject,
+  selectedUserProject,
 }: {
-  projects: Project[]
-  selectedProject: Project
+  projects: UserProject[],
+  selectedUserProject: UserProject
 }) {
 
   return (
@@ -38,13 +34,34 @@ export function ProjectSwitcher({
               className="hover:bg-background"
               asChild
             >
-              <Button variant={'outline'} className="py-7">
-                <Logo />
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold text-xl dark:text-white text-black">Open Feed</span>
-                  <span className="text-secondary-foreground">{selectedProject.name}</span>
+              <Button
+                variant="outline"
+                className="py-7 flex items-center gap-3 w-full"
+              >
+                {/* Logo - never shrink */}
+                <div className="shrink-0">
+                  <Logo  />
                 </div>
-                <ChevronsUpDown className="ml-auto text-white" />
+
+                {/* Text container */}
+                <div className="flex flex-col leading-none min-w-0">
+                  <span className="font-semibold text-xl dark:text-white text-black">
+                    Open Feed
+                  </span>
+
+                  <div className="flex items-center gap-2 min-w-0">
+                    {/* Project name - ONLY this truncates */}
+                    <span
+                      className="text-secondary-foreground truncate"
+                      title={selectedUserProject.project.name}
+                    >
+                      {selectedUserProject.project.name}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Icon - never shrink */}
+                <ChevronsUpDown className="ml-auto shrink-0" />
               </Button>
 
             </SidebarMenuButton>
@@ -53,14 +70,14 @@ export function ProjectSwitcher({
             className="w-(--radix-dropdown-menu-trigger-width)"
             align="start"
           >
-            {projects.map((project) => (
+            {projects.map(({ project }) => (
               <DropdownMenuItem
                 key={project.id}
                 asChild
               >
                 <Link href={`/projects/${project.id}`}>
                   {project.name}{" "}
-                  {project.id === selectedProject.id && <Check className="ml-auto" />}
+                  {project.id === selectedUserProject.project.id && <Check className="ml-auto" />}
                 </Link>
               </DropdownMenuItem>
             ))}

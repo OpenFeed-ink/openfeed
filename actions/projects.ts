@@ -1,13 +1,13 @@
 "use server";
 import { nanoid } from 'nanoid'
 import { databaseDrizzle } from "@/db";
-import { project } from "@/db/schema";
+import { project, usersProjects } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { fromErrorToFormState, FormState, toFormState } from "@/lib/zodErrorHandle";
 import { z } from "zod";
 import { headers } from "next/headers";
 import { revalidatePath } from 'next/cache';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 
 const ProjectData = z.object({
@@ -30,16 +30,33 @@ export async function upsertProjectAction(_: FormState, formData: FormData) {
     if (!session?.user?.id) throw new Error("forbidden");
     const projectId = id ?? nanoid()
 
-    const newProject = {
+    const newProject: typeof project.$inferInsert = {
       id: projectId,
       name,
       description,
-      userId: session.user.id,
     }
 
-    await databaseDrizzle
-      .insert(project)
-      .values(newProject).onConflictDoUpdate({ target: project.id, set: newProject })
+    await databaseDrizzle.transaction(async (tx) => {
+
+      const projId = await tx
+        .insert(project)
+        .values(newProject)
+        .onConflictDoUpdate({ target: project.id, set: newProject })
+        .returning({ id: project.id })
+        .then(id => id[0].id)
+
+      if (projId) {
+        const newRelation: typeof usersProjects.$inferInsert = { userId: session.user.id, projectId: projId, role: 'ADMIN' }
+        await tx.insert(usersProjects)
+          .values(newRelation)
+          .onConflictDoUpdate({
+            target: [usersProjects.userId, usersProjects.projectId],
+            set: newRelation
+          })
+      }
+    })
+
+
 
     revalidatePath("/projects");
     return toFormState("SUCCESS", projectId);
@@ -62,9 +79,20 @@ export async function deleteProjectAction(_: FormState, formData: FormData) {
     });
     if (!session?.user?.id) throw new Error("forbidden");
 
-    await databaseDrizzle.
-      delete(project).
-      where(and(eq(project.id, id), eq(project.userId, session.user.id)))
+    await databaseDrizzle.transaction(async (tx) => {
+
+      const userProject = await tx.query.usersProjects.findFirst({
+        where: (up, ops) => ops.and(
+          ops.eq(up.userId, session.user.id),
+          ops.eq(up.projectId, id)
+        )
+      })
+      if (!userProject) throw new Error("project not found")
+
+      if (userProject.role !== "ADMIN") throw new Error("you don't have primintion to delete this project")
+
+      await tx.delete(project).where(eq(project.id, id))
+    })
 
     revalidatePath("/projects");
     return toFormState("SUCCESS", "The project has been removed.");

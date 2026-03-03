@@ -80,7 +80,7 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
   })
 
   // Fetch project with all related data
-  const featureData:QFeature[] = await databaseDrizzle.query.feature.findMany({
+  const featureData: QFeature[] = await databaseDrizzle.query.feature.findMany({
     where: (f, ops) =>
       ops.and(
         ops.eq(f.projectId, id),
@@ -149,6 +149,14 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
   const totalCount = totalCountResult[0]?.count ?? 0;
   const totalPages = Math.ceil(totalCount / pageSize);
 
+  const memberships = await databaseDrizzle.query.usersProjects.findMany({
+    where: (p, ops) => ops.eq(p.projectId, id),
+    columns: {
+      userId: true,
+      role: true,
+    },
+  })
+
 
   if (!project) {
     return notFound();
@@ -203,6 +211,7 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
                 featureId={featureId}
                 user={session.user}
                 projectId={id}
+                memberships={memberships}
               />
             ) : (
               <div className="flex h-full min-h-100 items-center justify-center rounded-lg border bg-card p-8 text-center">

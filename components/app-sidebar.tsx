@@ -10,18 +10,20 @@ import {
 } from "@/components/ui/sidebar"
 import { LifeBuoyIcon, Lightbulb, Map, FileText, PaintRoller, Users, Brain } from "lucide-react"
 import { ProjectSwitcher } from "./project-switcher"
-import { ProjectType } from "@/db/schema"
+import { UserProject } from "@/type"
 
 
-export function AppSidebar({ project, allProjects, user }: {
-  project: ProjectType,
-  allProjects: ProjectType[],
+
+export function AppSidebar({ userProject, allProjects, user }: {
+  userProject: UserProject,
+  allProjects: UserProject[],
   user: {
     name: string;
     email: string;
     avatar?: string;
   }
 }) {
+  const { project } = userProject
   const data = {
     navMain: [
       {
@@ -86,7 +88,11 @@ export function AppSidebar({ project, allProjects, user }: {
   return (
     <Sidebar variant="inset">
       <SidebarHeader>
-        <ProjectSwitcher projects={allProjects} selectedProject={project} />
+        <ProjectSwitcher projects={allProjects} selectedUserProject={userProject} />
+
+        <span className="text-center text-xs text-primary capitalize">
+          {userProject.role.toLowerCase()}
+        </span>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} title="Collect Feedback" />

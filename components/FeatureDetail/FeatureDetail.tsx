@@ -14,12 +14,20 @@ import { User } from "better-auth";
 import { DeleteFeature } from "../DeleteFeature/DeleteFeature";
 import { AddComments } from "../AddComments/AddComments";
 import { DeleteComment } from "../DeleteComment/DeleteComment";
+import { permission } from "@/lib/utils";
 
 
-export async function FeatureDetail({ featureId, projectId, user }: { featureId: string, projectId: string, user: User }) {
-  // todo: is user in in the team team 
+export async function FeatureDetail({ featureId, projectId, user, memberships }: {
+  featureId: string,
+  projectId: string,
+  user: User,
+  memberships: {
+    userId: string;
+    role: "ADMIN" | "MEMBER";
+  }[]
+}) {
 
-  const localFeature = await databaseDrizzle.query.feature.findFirst({
+  const feature = await databaseDrizzle.query.feature.findFirst({
     where: (f, ops) =>
       ops.and(
         ops.eq(f.id, featureId),
@@ -49,7 +57,7 @@ export async function FeatureDetail({ featureId, projectId, user }: { featureId:
   })
 
 
-  if (!localFeature) return (<div className="flex h-full min-h-100 items-center justify-center rounded-lg border bg-card p-8 text-center">
+  if (!feature) return (<div className="flex h-full min-h-100 items-center justify-center rounded-lg border bg-card p-8 text-center">
     <div>
       <div className="mx-auto h-12 w-12 text-muted-foreground/50" />
       <h3 className="mt-4 text-lg font-medium">No feedback Found</h3>
@@ -63,25 +71,25 @@ export async function FeatureDetail({ featureId, projectId, user }: { featureId:
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-xl">{localFeature.title}</CardTitle>
+            <CardTitle className="text-xl">{feature.title}</CardTitle>
             Submitted{" "}
-            {formatDistanceToNow(new Date(localFeature.createdAt), { addSuffix: true })}
-            {localFeature.authorId ? <Button asChild variant='link'>
-              <Link href={`/profile/${localFeature.authorId}`} className="text-sm text-muted-foreground" >
-                by {localFeature.authorName}
+            {formatDistanceToNow(new Date(feature.createdAt), { addSuffix: true })}
+            {feature.authorId ? <Button asChild variant='link'>
+              <Link href={`/profile/${feature.authorId}`} className="text-sm text-muted-foreground" >
+                by {feature.authorName}
               </Link>
-            </Button> : localFeature.authorEmail ?
-              <p>by {localFeature.authorEmail}</p> :
-              localFeature.authorName ? <p>by {localFeature.authorName}</p> : <p />
+            </Button> : feature.authorEmail ?
+              <p>by {feature.authorEmail}</p> :
+              feature.authorName ? <p>by {feature.authorName}</p> : <p />
             }
-            <DeleteFeature id={localFeature.id} projectId={localFeature.projectId} />
+            <DeleteFeature id={feature.id} projectId={feature.projectId} />
           </div>
           <div className="flex items-center gap-4">
             <UpvoteButton
-              projectId={localFeature.projectId}
-              featureId={localFeature.id}
+              projectId={feature.projectId}
+              featureId={feature.id}
             />
-            <UpsertFeature projectId={localFeature.projectId} feature={localFeature} />
+            <UpsertFeature projectId={feature.projectId} feature={feature} />
           </div>
         </div>
       </CardHeader>
@@ -90,11 +98,11 @@ export async function FeatureDetail({ featureId, projectId, user }: { featureId:
 
       <CardContent className="space-y-6 py-6">
         {/* Description */}
-        {localFeature.description && (
+        {feature.description && (
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-foreground">Description</h3>
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {localFeature.description}
+              {feature.description}
             </p>
           </div>
         )}
@@ -105,9 +113,9 @@ export async function FeatureDetail({ featureId, projectId, user }: { featureId:
             <Sparkles className="h-4 w-4 text-teal-600" />
             AI Summary
           </h3>
-          {localFeature.aiSummary ? (
+          {feature.aiSummary ? (
             <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-              {localFeature.aiSummary}
+              {feature.aiSummary}
             </p>
           ) : (
             <Button
@@ -132,13 +140,15 @@ export async function FeatureDetail({ featureId, projectId, user }: { featureId:
         {/* Comments */}
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
-            Comments ({localFeature.comments.length})
+            Comments ({feature.comments.length})
           </h3>
 
           <ScrollArea className="max-h-80 overflow-y-auto pr-3">
             <div className="space-y-4">
-              {localFeature.comments.map((comment) => (
-                <div key={comment.id} className="flex gap-3">
+              {feature.comments.map((comment) => {
+                const permit = permission(memberships, comment.authorId, user.id)
+
+                return (<div key={comment.id} className="flex gap-3">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={comment.author?.image ?? undefined} alt={comment.author?.name} />
                     <AvatarFallback
@@ -157,22 +167,22 @@ export async function FeatureDetail({ featureId, projectId, user }: { featureId:
                         <span className="text-sm font-medium">
                           {comment.authorName || "Anonymous"}
                         </span>
-                        {comment.authorId === user.id && (
-                          <Badge variant="outline" className="text-xs">
-                            Team
+                        {comment.authorId && (
+                          <Badge variant="outline" className="text-xs capitalize">
+                            {permit.role}
                           </Badge>
                         )}
                         <span className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                         </span>
-
                       </div>
-                      {(comment.authorId === user.id || comment.authorId === null)  && <DeleteComment projectId={projectId} featureId={featureId} commentId={comment.id} />}
+                      {permit.deleteComment && <DeleteComment projectId={projectId} featureId={featureId} commentId={comment.id} />}
                     </div>
                     <p className="text-sm text-muted-foreground">{comment.content}</p>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </ScrollArea>
 
