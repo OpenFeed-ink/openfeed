@@ -60,10 +60,12 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
 
 export async function deleteFeatureAction(_: FormState, formData: FormData) {
   try {
-    const { id } = z.object({
-      id: z.string().min(5)
+    const { id, projectId } = z.object({
+      id: z.string().min(5),
+      projectId: z.string().min(5)
     }).parse({
-      id: formData.get("id")
+      id: formData.get("id"),
+      projectId: formData.get("projectId")
     })
 
     const session = await auth.api.getSession({
@@ -72,11 +74,11 @@ export async function deleteFeatureAction(_: FormState, formData: FormData) {
     if (!session?.user?.id) throw new Error("forbidden");
 
     await databaseDrizzle.
-      delete(project).
-      where(and(eq(project.id, id), eq(project.userId, session.user.id)))
+      delete(feature).
+      where(and(eq(feature.id, id), eq(feature.projectId, projectId)))
 
-    revalidatePath("/projects");
-    return toFormState("SUCCESS", "The project has been removed.");
+    revalidatePath(`/projects/${projectId}/feature-requests`);
+    return toFormState("SUCCESS", "The feature request has been removed.");
   } catch (e) {
     return fromErrorToFormState(e);
   }

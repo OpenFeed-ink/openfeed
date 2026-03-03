@@ -159,7 +159,7 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{project.name} Feedback</h1>
+          <h1 className="text-2xl font-bold text-foreground">{project.name} Feature Request ({totalCount})</h1>
           <p className="text-sm text-muted-foreground">
             Manage and respond to user feedback
           </p>

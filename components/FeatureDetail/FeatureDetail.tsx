@@ -12,6 +12,7 @@ import Link from "next/link"
 import { UpvoteButton } from "../UpvoteButton/UpvoteButton";
 import { databaseDrizzle } from "@/db";
 import { User } from "better-auth";
+import { DeleteFeature } from "../DeleteFeature/DeleteFeature";
 
 
 export async function FeatureDetail({ featureId, projectId, user }: { featureId: string, projectId: string, user: User }) {
@@ -60,16 +61,17 @@ export async function FeatureDetail({ featureId, projectId, user }: { featureId:
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <CardTitle className="text-xl">{localFeature.title}</CardTitle>
-            Submitted{" "}
-            {formatDistanceToNow(new Date(localFeature.createdAt), { addSuffix: true })}
-            {localFeature.authorId ? <Button asChild variant='link'>
-              <Link href={`/profile/${localFeature.authorId}`} className="text-sm text-muted-foreground" >
-                by {localFeature.authorName}
-              </Link>
-            </Button> : localFeature.authorEmail ?
-              <p>by {localFeature.authorEmail}</p> :
-              localFeature.authorName ? <p>by {localFeature.authorName}</p> : <p />
-            }
+              Submitted{" "}
+              {formatDistanceToNow(new Date(localFeature.createdAt), { addSuffix: true })}
+              {localFeature.authorId ? <Button asChild variant='link'>
+                <Link href={`/profile/${localFeature.authorId}`} className="text-sm text-muted-foreground" >
+                  by {localFeature.authorName}
+                </Link>
+              </Button> : localFeature.authorEmail ?
+                <p>by {localFeature.authorEmail}</p> :
+                localFeature.authorName ? <p>by {localFeature.authorName}</p> : <p />
+              }
+              <DeleteFeature id={localFeature.id} projectId={localFeature.projectId} />
           </div>
           <div className="flex items-center gap-4">
             <UpvoteButton
