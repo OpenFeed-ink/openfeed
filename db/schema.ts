@@ -150,7 +150,7 @@ export const comment = pgTable("comments", {
     .references(() => feature.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   authorName: varchar("author_name", { length: 255 }),
-  autherId: text("auther_id").references(() => user.id, { onDelete: "cascade" }),
+  authorId: text("author_id").references(() => user.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 })
 
@@ -169,7 +169,7 @@ export const featureRelations = relations(feature, ({ one, many }) => ({
 
 export const commentRelations = relations(comment, ({ one }) => ({
   author: one(user, {
-    fields: [comment.autherId],
+    fields: [comment.authorId],
     references: [user.id]
   }),
   feature: one(feature, {

@@ -57,6 +57,13 @@
       "when": 1772394715297,
       "tag": "0007_hot_the_enforcers",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1772531308982,
+      "tag": "0008_broken_roulette",
+      "breakpoints": true
     }
   ]
 }

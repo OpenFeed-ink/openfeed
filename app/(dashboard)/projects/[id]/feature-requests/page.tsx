@@ -46,7 +46,7 @@ export interface QFeature {
     createdAt: Date;
     authorName: string | null;
     content: string;
-    autherId: string | null;
+    authorId: string | null;
     author: {
       id: string;
       name: string;
@@ -80,7 +80,7 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
   })
 
   // Fetch project with all related data
-  const featureData = await databaseDrizzle.query.feature.findMany({
+  const featureData:QFeature[] = await databaseDrizzle.query.feature.findMany({
     where: (f, ops) =>
       ops.and(
         ops.eq(f.projectId, id),
@@ -208,9 +208,9 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
               <div className="flex h-full min-h-100 items-center justify-center rounded-lg border bg-card p-8 text-center">
                 <div>
                   <div className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                  <h3 className="mt-4 text-lg font-medium">No feedback selected</h3>
+                  <h3 className="mt-4 text-lg font-medium">No Feature Request selected</h3>
                   <p className="text-sm text-muted-foreground">
-                    Click on a feedback item to view details
+                    Click on a Feature Request item to view details
                   </p>
                 </div>
               </div>

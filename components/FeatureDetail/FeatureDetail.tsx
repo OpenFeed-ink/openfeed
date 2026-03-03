@@ -2,20 +2,23 @@ import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Send } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { UpsertFeature } from "../UpsertFeature/UpsertFeature";
 import Link from "next/link"
 import { UpvoteButton } from "../UpvoteButton/UpvoteButton";
 import { databaseDrizzle } from "@/db";
 import { User } from "better-auth";
 import { DeleteFeature } from "../DeleteFeature/DeleteFeature";
+import { AddComments } from "../AddComments/AddComments";
+import { DeleteComment } from "../DeleteComment/DeleteComment";
 
 
 export async function FeatureDetail({ featureId, projectId, user }: { featureId: string, projectId: string, user: User }) {
+  // todo: is user in in the team team 
+
   const localFeature = await databaseDrizzle.query.feature.findFirst({
     where: (f, ops) =>
       ops.and(
@@ -61,17 +64,17 @@ export async function FeatureDetail({ featureId, projectId, user }: { featureId:
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <CardTitle className="text-xl">{localFeature.title}</CardTitle>
-              Submitted{" "}
-              {formatDistanceToNow(new Date(localFeature.createdAt), { addSuffix: true })}
-              {localFeature.authorId ? <Button asChild variant='link'>
-                <Link href={`/profile/${localFeature.authorId}`} className="text-sm text-muted-foreground" >
-                  by {localFeature.authorName}
-                </Link>
-              </Button> : localFeature.authorEmail ?
-                <p>by {localFeature.authorEmail}</p> :
-                localFeature.authorName ? <p>by {localFeature.authorName}</p> : <p />
-              }
-              <DeleteFeature id={localFeature.id} projectId={localFeature.projectId} />
+            Submitted{" "}
+            {formatDistanceToNow(new Date(localFeature.createdAt), { addSuffix: true })}
+            {localFeature.authorId ? <Button asChild variant='link'>
+              <Link href={`/profile/${localFeature.authorId}`} className="text-sm text-muted-foreground" >
+                by {localFeature.authorName}
+              </Link>
+            </Button> : localFeature.authorEmail ?
+              <p>by {localFeature.authorEmail}</p> :
+              localFeature.authorName ? <p>by {localFeature.authorName}</p> : <p />
+            }
+            <DeleteFeature id={localFeature.id} projectId={localFeature.projectId} />
           </div>
           <div className="flex items-center gap-4">
             <UpvoteButton
@@ -137,9 +140,10 @@ export async function FeatureDetail({ featureId, projectId, user }: { featureId:
               {localFeature.comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3">
                   <Avatar className="h-8 w-8">
+                    <AvatarImage src={comment.author?.image ?? undefined} alt={comment.author?.name} />
                     <AvatarFallback
                       className={
-                        comment.autherId
+                        comment.authorId
                           ? "bg-teal-100 text-teal-900 dark:bg-teal-900 dark:text-teal-100"
                           : "bg-muted"
                       }
@@ -148,18 +152,22 @@ export async function FeatureDetail({ featureId, projectId, user }: { featureId:
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">
-                        {comment.authorName || "Anonymous"}
-                      </span>
-                      {comment.autherId && (
-                        <Badge variant="outline" className="text-xs">
-                          Team
-                        </Badge>
-                      )}
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
-                      </span>
+                    <div className="flex justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">
+                          {comment.authorName || "Anonymous"}
+                        </span>
+                        {comment.authorId === user.id && (
+                          <Badge variant="outline" className="text-xs">
+                            Team
+                          </Badge>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                        </span>
+
+                      </div>
+                      {(comment.authorId === user.id || comment.authorId === null)  && <DeleteComment projectId={projectId} featureId={featureId} commentId={comment.id} />}
                     </div>
                     <p className="text-sm text-muted-foreground">{comment.content}</p>
                   </div>
@@ -169,23 +177,7 @@ export async function FeatureDetail({ featureId, projectId, user }: { featureId:
           </ScrollArea>
 
           {/* Add comment */}
-          <form className="flex gap-2">
-            <Textarea
-              placeholder="Reply as team..."
-              className="min-h-15 resize-none"
-            />
-            <Button
-              type="submit"
-              size="icon"
-              className="h-15 w-15 bg-teal-600 hover:bg-teal-700"
-            >
-              {false ? (
-                <Sparkles className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </Button>
-          </form>
+          <AddComments featureId={featureId} projectId={projectId} />
         </div>
       </CardContent>
     </Card>

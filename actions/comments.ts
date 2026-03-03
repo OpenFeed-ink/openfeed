@@ -1,6 +1,6 @@
 "use server";
 import { databaseDrizzle } from "@/db";
-import { feature } from "@/db/schema";
+import { comment } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { fromErrorToFormState, FormState, toFormState } from "@/lib/zodErrorHandle";
 import { z } from "zod";
@@ -9,23 +9,21 @@ import { revalidatePath } from 'next/cache';
 import { and, eq } from 'drizzle-orm';
 
 
-const ProjectData = z.object({
+const CommentData = z.object({
   id: z.string().nullable(),
   projectId: z.string().min(3),
-  title: z.string().min(3),
-  description: z.string().nullable(),
-  status: z.enum(["under_review", "planned", "in_progress", "done", "closed"])
+  featureId: z.string().min(3),
+  content: z.string().trim().min(1),
 
 })
-// todod
-export async function upsertFeaturesAction(_: FormState, formData: FormData) {
+
+export async function upsertCommentAction(_: FormState, formData: FormData) {
   try {
-    const { id, projectId, title, description, status } = ProjectData.parse({
+    const { id, projectId, featureId, content } = CommentData.parse({
       id: formData.get("id"),
       projectId: formData.get("projectId"),
-      title: formData.get("title"),
-      description: formData.get("description"),
-      status: formData.get("status")
+      featureId: formData.get("featureId"),
+      content: formData.get("content")
     })
 
     const session = await auth.api.getSession({
@@ -34,38 +32,38 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
 
     if (!session?.user?.id) throw new Error("forbidden");
 
-    const newFeature: typeof feature.$inferInsert = {
+    const newComment: typeof comment.$inferInsert = {
       id: id ?? undefined,
-      projectId: projectId,
-      title: title,
-      description: description,
-      authorId: session.user.id,
       authorName: session.user.name,
-      status: status,
+      authorId: session.user.id,
+      content: content,
+      featureId: featureId,
     }
 
     await databaseDrizzle
-      .insert(feature)
-      .values(newFeature)
-      .onConflictDoUpdate({ target: feature.id, set: newFeature })
+      .insert(comment)
+      .values(newComment)
+      .onConflictDoUpdate({ target: comment.id, set: comment })
 
     revalidatePath(`/projects/${projectId}/feature-requests`);
 
-    return toFormState("SUCCESS", "Your feature request has been added.");
+    return toFormState("SUCCESS", "");
   } catch (e) {
     return fromErrorToFormState(e);
   }
 }
 
 
-export async function deleteFeatureAction(_: FormState, formData: FormData) {
+export async function deleteCommentAction(_: FormState, formData: FormData) {
   try {
-    const { id, projectId } = z.object({
+    const { id, projectId, featureId } = z.object({
       id: z.string().min(5),
+      featureId: z.string().min(5),
       projectId: z.string().min(5)
     }).parse({
       id: formData.get("id"),
-      projectId: formData.get("projectId")
+      projectId: formData.get("projectId"),
+      featureId: formData.get("featureId")
     })
 
     const session = await auth.api.getSession({
@@ -74,11 +72,14 @@ export async function deleteFeatureAction(_: FormState, formData: FormData) {
     if (!session?.user?.id) throw new Error("forbidden");
 
     await databaseDrizzle.
-      delete(feature).
-      where(and(eq(feature.id, id), eq(feature.projectId, projectId)))
+      delete(comment).
+      where(and(
+      eq(comment.id, id),
+      eq(comment.featureId, featureId), 
+    ))
 
     revalidatePath(`/projects/${projectId}/feature-requests`);
-    return toFormState("SUCCESS", "The feature request has been removed.");
+    return toFormState("SUCCESS", "The comment has been removed.");
   } catch (e) {
     return fromErrorToFormState(e);
   }
