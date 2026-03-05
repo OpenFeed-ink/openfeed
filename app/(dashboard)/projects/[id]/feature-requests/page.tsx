@@ -197,7 +197,6 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
               <FeatureDetail
                 featureId={featureId}
                 user={session.user}
-                projectId={id}
                 memberships={memberships}
               />
             ) : (

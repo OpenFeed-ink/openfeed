@@ -95,10 +95,13 @@ export const usersProjects = pgTable("users_projects", {
     .references(() => project.id, { onDelete: "cascade" }),
   role: roleEnum("role")
     .notNull(),
-}, (t) => [primaryKey({ columns: [t.userId, t.projectId] })])
+}, (t) => [
+  primaryKey({ columns: [t.userId, t.projectId] }),
+  index("user_project_idx").on(t.userId),
+  index("project_user_idx").on(t.projectId)
+],
+)
 
-
-export type ProjectType = typeof project.$inferSelect
 
 
 export const featureStatusEnum = pgEnum("feature_statu", [
@@ -130,11 +133,14 @@ export const feature = pgTable("feature", {
   authorId: text("author_id")
     .references(() => user.id, { onDelete: "cascade" }),
 
+  pinnedComment: uuid("pinned_comment")
+    .references((): AnyPgColumn => comment.id, { onDelete: "set null" }),
+
   aiSummary: text("ai_summary"),
   priorityScore: real("priority_score"),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
-})
+}, (t) =>[index("project_feature_idx").on(t.projectId)] )
 
 export const upvote = pgTable(
   "upvotes",
@@ -163,10 +169,12 @@ export const comment = pgTable("comments", {
   content: text("content").notNull(),
   authorName: varchar("author_name", { length: 255 }),
   authorId: text("author_id").references(() => user.id, { onDelete: "cascade" }),
-  isPinned: boolean("is_pinned").default(false).notNull(),
   parentId: uuid("parent_id").references((): AnyPgColumn => comment.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-})
+}, (table) => [
+  index("comments_feature_idx").on(table.featureId),
+  index("comments_parent_idx").on(table.parentId),
+])
 
 export const tag = pgTable("tag", {
   id: uuid("id").defaultRandom().primaryKey(),

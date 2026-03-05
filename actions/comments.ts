@@ -1,6 +1,6 @@
 "use server";
 import { databaseDrizzle } from "@/db";
-import { comment } from "@/db/schema";
+import { comment, feature } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { fromErrorToFormState, FormState, toFormState } from "@/lib/zodErrorHandle";
 import { z } from "zod";
@@ -14,16 +14,17 @@ const CommentData = z.object({
   projectId: z.string().min(3),
   featureId: z.string().min(3),
   content: z.string().trim().min(1),
-
+  parentId: z.string().nullable()
 })
 
 export async function upsertCommentAction(_: FormState, formData: FormData) {
   try {
-    const { id, projectId, featureId, content } = CommentData.parse({
+    const { id, projectId, featureId, content, parentId } = CommentData.parse({
       id: formData.get("id"),
       projectId: formData.get("projectId"),
       featureId: formData.get("featureId"),
-      content: formData.get("content")
+      content: formData.get("content"),
+      parentId: formData.get("parentId")
     })
 
     const session = await auth.api.getSession({
@@ -38,6 +39,7 @@ export async function upsertCommentAction(_: FormState, formData: FormData) {
       authorId: session.user.id,
       content: content,
       featureId: featureId,
+      parentId: parentId
     }
 
     await databaseDrizzle
@@ -74,9 +76,9 @@ export async function deleteCommentAction(_: FormState, formData: FormData) {
     await databaseDrizzle.
       delete(comment).
       where(and(
-      eq(comment.id, id),
-      eq(comment.featureId, featureId), 
-    ))
+        eq(comment.id, id),
+        eq(comment.featureId, featureId),
+      ))
 
     revalidatePath(`/projects/${projectId}/feature-requests`);
     return toFormState("SUCCESS", "The comment has been removed.");
@@ -85,3 +87,27 @@ export async function deleteCommentAction(_: FormState, formData: FormData) {
   }
 }
 
+export async function pinCommentAction(_: FormState, formData: FormData) {
+  try {
+    const { id, featureId, projectId } = z.object({
+      id: z.string().min(5).nullable(),
+      featureId: z.string().min(5),
+      projectId: z.string().min(5)
+    }).parse({
+      id: formData.get("id"),
+      featureId: formData.get("featureId"),
+      projectId: formData.get("projectId"),
+    })
+
+    await databaseDrizzle
+      .update(feature)
+      .set({ pinnedComment: id })
+      .where(eq(feature.id, featureId));
+
+    revalidatePath(`/projects/${projectId}/feature-requests`);
+
+    return toFormState("SUCCESS", id ? "Comment pinned" : "Comment unpinned");
+  } catch (e) {
+    return fromErrorToFormState(e);
+  }
+}

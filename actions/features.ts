@@ -84,7 +84,6 @@ export async function checkFeatureSimilar(
       title: formData.get("title"),
     })
     const top = await smartRankedQuery(title, projectId)
- 
     const results: SimilarFeature[] = top.map((r) => ({
       id: r.id as string,
       title: r.title as string,

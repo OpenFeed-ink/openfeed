@@ -1,18 +1,32 @@
 import { User } from "better-auth";
 import { eq } from "drizzle-orm";
 import { feature } from "@/db/schema";
-import { FeatureDetailClient } from "./FeatureDetailClient";
+import { Separator } from "@/components/ui/separator";
 import { databaseDrizzle } from "@/db";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDistanceToNow } from "date-fns";
+import { Button } from "@/components/ui/button";
+import Link from "next/link"
+import { UpvoteButton } from "../UpvoteButton/UpvoteButton";
+import { UpsertFeature } from "../UpsertFeature/UpsertFeature";
+import { Sparkles } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { AddComments } from "../AddComments/AddComments";
+import { CommentProvider } from "@/contexts/CommentProvider";
+import { RenderComment } from "../RenderComment/RenderComment";
+import { CommentNode } from "@/type"
 
 
-export async function FeatureDetail({ featureId, projectId, user, memberships }: {
+type Membership = {
+  userId: string;
+  role: "ADMIN" | "MEMBER";
+}
+
+
+export async function FeatureDetail({ featureId, user, memberships }: {
   featureId: string,
-  projectId: string,
   user: User,
-  memberships: {
-    userId: string;
-    role: "ADMIN" | "MEMBER";
-  }[]
+  memberships: Membership[]
 }) {
 
   const featureData = await databaseDrizzle.query.feature.findFirst({
@@ -20,10 +34,13 @@ export async function FeatureDetail({ featureId, projectId, user, memberships }:
     with: {
       comments: {
         with: {
-          author: { columns: { id: true, name: true, image: true } },
-          replies: {
-            with: { author: { columns: { id: true, name: true, image: true } } }
-          }
+          author: {
+            columns: {
+              id: true,
+              name: true,
+              image: true
+            },
+          },
         },
         orderBy: (comments, { desc }) => [desc(comments.createdAt)]
       },
@@ -34,22 +51,149 @@ export async function FeatureDetail({ featureId, projectId, user, memberships }:
             ops.eq(u.voterEmail, user.email)
           ),
         columns: { id: true }
-      }
+      },
+      tags: { with: { tag: true } },
     }
   });
 
   if (!featureData) return null;
-
-  const canPin = memberships.some(
-    (m) => m.userId === user.id && (m.role === "ADMIN" || m.role === "MEMBER")
-  );
-
+  const commentsTree = buildCommentTree(featureData.comments, featureData.pinnedComment)
   return (
-    <FeatureDetailClient
-      feature={featureData}
-      user={user}
-      memberships={memberships}
-      canPin={canPin}
-    />
+    <Card className="h-full">
+      <CardHeader className="pb-4">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <CardTitle className="text-xl">{featureData.title}</CardTitle>
+            <div className="text-sm text-muted-foreground">
+              Submitted{" "}
+              {formatDistanceToNow(new Date(featureData.createdAt), { addSuffix: true })}
+              {featureData.authorId ? (
+                <Button asChild variant="link" className="px-1">
+                  <Link href={`/profile/${featureData.authorId}`}>by {featureData.authorName}</Link>
+                </Button>
+              ) : featureData.authorEmail ? (
+                <span> by {featureData.authorEmail}</span>
+              ) : featureData.authorName ? (
+                <span> by {featureData.authorName}</span>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <UpvoteButton projectId={featureData.projectId} featureId={featureData.id} />
+            <UpsertFeature
+              projectId={featureData.projectId}
+              feature={featureData}
+              availableTags={[]}
+            />
+          </div>
+        </div>
+      </CardHeader>
+
+      <Separator />
+
+      <CardContent className="space-y-6 py-6">
+        {/* Description */}
+        {featureData.description && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-foreground">Description</h3>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {featureData.description}
+            </p>
+          </div>
+        )}
+
+        {/* AI Summary */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-teal-600" />
+            AI Summary
+          </h3>
+          {featureData.aiSummary ? (
+            <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+              {featureData.aiSummary}
+            </p>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+            >
+              {false ? (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Generate AI Summary
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+
+        {/* Comments */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+            Comments ({featureData.comments.length})
+          </h3>
+
+          <ScrollArea className="max-h-80 overflow-y-auto pr-3">
+            <div className="space-y-4">
+              {featureData.comments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No comments yet.</p>
+              ) : (
+                <CommentProvider
+                  feature={{
+                    id: featureData.id,
+                    projectId: featureData.projectId,
+                    comments: commentsTree,
+                    pinCommentId: featureData.pinnedComment
+                  }}
+                  user={user}
+                  memberships={memberships}
+
+                >
+                  <div className="space-y-4">
+                    {commentsTree.map((comment) => (
+                      <RenderComment key={comment.id} comment={comment} />
+                    ))}
+                  </div>
+                </CommentProvider>)}
+            </div>
+          </ScrollArea>
+          <AddComments featureId={featureData.id} projectId={featureData.projectId} />
+        </div>
+      </CardContent>
+    </Card>
+
   );
+}
+
+type DbComment = Omit<CommentNode, "replies">
+
+function buildCommentTree(comments: DbComment[], pinnedCommentId?: string | null): CommentNode[] {
+  const map = new Map<string, CommentNode>();
+  const roots: CommentNode[] = [];
+  let pinnedComment: CommentNode | null = null
+
+  for (const comment of comments) {
+    map.set(comment.id, { ...comment, replies: [] });
+  }
+
+  for (const comment of comments) {
+    const node = map.get(comment.id)!;
+    if (comment.id === pinnedCommentId) {
+      pinnedComment = node
+    } else if (comment.parentId) {
+      const parent = map.get(comment.parentId);
+      parent?.replies.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+
+  pinnedComment && roots.unshift(pinnedComment)
+ 
+  return roots
 }

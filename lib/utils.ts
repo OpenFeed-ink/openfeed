@@ -25,6 +25,7 @@ const primission = {
     deleteAnyFeature: true,
     addComment: true,
     deleteComment: true,
+    canPin:true
   },
   "MEMBER": {
     role: "member",
@@ -34,6 +35,7 @@ const primission = {
     deleteAnyFeature: false,
     addComment: true,
     deleteComment: true,
+    canPin: true,
   },
   "ANONYMOUS": {
     role: "anonymous",
@@ -43,6 +45,7 @@ const primission = {
     deleteAnyFeature: false,
     addComment: true,
     deleteComment: false,
+    canPin: false
   },
 }
 

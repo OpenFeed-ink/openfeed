@@ -10,7 +10,13 @@ import { useFormStatus } from "react-dom";
 import { comment } from "@/db/schema";
 
 
-export const AddComments = ({featureId, projectId, currentComment}: {featureId:string, projectId:string, currentComment?:typeof comment.$inferInsert}) => {
+export const AddComments = ({ featureId, projectId, parentId, currentComment, afterAction }: {
+  featureId: string,
+  projectId: string,
+  currentComment?: typeof comment.$inferInsert,
+  parentId?: string,
+  afterAction?: () => void
+}) => {
   const [state, formAction] = useActionState(upsertCommentAction, EMPTY_FORM_STATE);
 
   useEffect(() => {
@@ -22,12 +28,14 @@ export const AddComments = ({featureId, projectId, currentComment}: {featureId:s
 
 
   return (
-    <form className="flex gap-2" action={(data)=> {
+    <form className="flex gap-2" action={(data) => {
       data.set("projectId", projectId)
       data.set("featureId", featureId)
+      if (parentId) data.set("parentId", parentId)
       formAction(data)
+      afterAction?.()
     }} >
-      <FeatureForm newComment={currentComment}/>
+      <FeatureForm newComment={currentComment} />
     </form>
   )
 }
@@ -36,7 +44,7 @@ export const AddComments = ({featureId, projectId, currentComment}: {featureId:s
 const FeatureForm = ({ newComment }: { newComment?: typeof comment.$inferInsert }) => {
   const { pending } = useFormStatus();
   return (
-    <>
+    <div className="w-full flex gap-2">
       <Textarea
         name="content"
         id="content"
@@ -55,7 +63,7 @@ const FeatureForm = ({ newComment }: { newComment?: typeof comment.$inferInsert 
         ) : (
           <Send className="h-4 w-4" />
         )}
-      </Button>   
-    </>
+      </Button>
+    </div>
   )
 }

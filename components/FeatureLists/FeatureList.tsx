@@ -54,7 +54,7 @@ export function FeatureList({ features, totalPages, currentPage, selectedFeature
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2 max-h-[calc(100vh-280px)] overflow-y-auto pr-2">
+      <div className="space-y-2 max-h-[calc(100vh-80px)] overflow-y-auto pr-2">
         {features.length === 0 ? (
           <Card className="p-8 text-center">
             <p className="text-muted-foreground">No feedback found</p>
