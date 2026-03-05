@@ -134,7 +134,7 @@ export function UpsertFeature({ projectId, feature, availableTags }: UpsertFeatu
       open={open}
       onOpenChange={(value) => {
         setOpen(value);
-        if (!value) resetForm();
+       resetForm();
       }}
     >
       <DialogTrigger asChild>
