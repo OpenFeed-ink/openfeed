@@ -7,3 +7,11 @@ export type UserProject = {
         description: string | null;
     };
 }
+
+export type SimilarFeature = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: "under_review" | "planned" | "in_progress" | "done" | "closed";
+  upvotesCount: number;
+}

@@ -1,12 +1,14 @@
 "use server";
 import { databaseDrizzle } from "@/db";
-import { feature } from "@/db/schema";
+import { feature, featureTags } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { fromErrorToFormState, FormState, toFormState } from "@/lib/zodErrorHandle";
 import { z } from "zod";
 import { headers } from "next/headers";
 import { revalidatePath } from 'next/cache';
 import { and, eq } from 'drizzle-orm';
+import { SimilarFeature } from "@/type";
+import { smartRankedQuery } from "@/db/utils";
 
 
 const ProjectData = z.object({
@@ -14,18 +16,20 @@ const ProjectData = z.object({
   projectId: z.string().min(3),
   title: z.string().min(3),
   description: z.string().nullable(),
+  tagIds: z.string().array(),
   status: z.enum(["under_review", "planned", "in_progress", "done", "closed"])
-
 })
-// todod
+
+
 export async function upsertFeaturesAction(_: FormState, formData: FormData) {
   try {
-    const { id, projectId, title, description, status } = ProjectData.parse({
+    const { id, projectId, title, description, status, tagIds } = ProjectData.parse({
       id: formData.get("id"),
       projectId: formData.get("projectId"),
       title: formData.get("title"),
       description: formData.get("description"),
-      status: formData.get("status")
+      status: formData.get("status"),
+      tagIds: formData.getAll("tagIds")
     })
 
     const session = await auth.api.getSession({
@@ -44,19 +48,56 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
       status: status,
     }
 
-    await databaseDrizzle
-      .insert(feature)
-      .values(newFeature)
-      .onConflictDoUpdate({ target: feature.id, set: newFeature })
+    await databaseDrizzle.transaction(async (tx) => {
+      const featureId = await tx
+        .insert(feature)
+        .values(newFeature)
+        .onConflictDoUpdate({ target: feature.id, set: newFeature })
+        .returning({ id: feature.id })
+        .then(res => res[0].id)
+
+      const features = tagIds.map(tagId => ({ featureId, tagId }))
+
+      await tx.insert(featureTags)
+        .values(features)
+        .onConflictDoNothing()
+    })
 
     revalidatePath(`/projects/${projectId}/feature-requests`);
-
     return toFormState("SUCCESS", "Your feature request has been added.");
   } catch (e) {
     return fromErrorToFormState(e);
   }
 }
 
+
+export async function checkFeatureSimilar(
+  _: FormState,
+  formData: FormData
+): Promise<FormState<SimilarFeature[]>> {
+  try {
+    const { title, projectId } = z.object({
+      projectId: z.string().min(3),
+      title: z.string().min(3),
+    }).parse({
+      projectId: formData.get("projectId"),
+      title: formData.get("title"),
+    })
+    const top = await smartRankedQuery(title, projectId)
+ 
+    const results: SimilarFeature[] = top.map((r) => ({
+      id: r.id as string,
+      title: r.title as string,
+      description: r.description as string,
+      status: r.status as "under_review" | "planned" | "in_progress" | "done" | "closed",
+      upvotesCount: r.upvotes_count as number
+    }))
+
+    return toFormState<SimilarFeature[]>("SUCCESS", "Your feature request has been added.", results);
+  } catch (e) {
+    return fromErrorToFormState(e);
+  }
+}
 
 export async function deleteFeatureAction(_: FormState, formData: FormData) {
   try {

@@ -88,6 +88,22 @@ export function FeatureList({ features, totalPages, currentPage, selectedFeature
                       {feature.description}
                     </CardDescription>
                   )}
+                  {/* Tags */}
+                  {feature.tags && feature.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {feature.tags.map(({ tag }: any) => (
+                        <Badge
+                          key={tag.id}
+                          variant="outline"
+                          className="text-xs px-1 py-0"
+                          style={{ borderColor: tag.color }}
+                        >
+                          <div className="h-1.5 w-1.5 rounded-full mr-1" style={{ backgroundColor: tag.color }} />
+                          {tag.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </CardHeader>
                 <CardFooter className="p-4 pt-2">
                   <div className="flex w-full items-center justify-between text-xs text-muted-foreground">

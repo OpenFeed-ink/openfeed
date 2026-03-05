@@ -55,9 +55,6 @@ export async function upsertProjectAction(_: FormState, formData: FormData) {
           })
       }
     })
-
-
-
     revalidatePath("/projects");
     return toFormState("SUCCESS", projectId);
   } catch (e) {

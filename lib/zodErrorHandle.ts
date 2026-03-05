@@ -1,9 +1,10 @@
 import { ZodError } from "zod";
-export type FormState = {
+export type FormState<T = any>  = {
   status: "UNSET" | "SUCCESS" | "ERROR";
   message: string;
   fieldErrors: Record<string, string[] | undefined>;
   timestamp: number;
+  restult?: T
 };
 
 export const EMPTY_FORM_STATE: FormState = {
@@ -39,12 +40,14 @@ export const fromErrorToFormState = (error: unknown): FormState => {
   }
 };
 
-export const toFormState = (
+export const toFormState = <T>(
   status: FormState["status"],
   message: string,
-): FormState => {
+  restult?:T
+): FormState<T> => {
   return {
     status,
+    restult,
     message,
     fieldErrors: {},
     timestamp: Date.now(),

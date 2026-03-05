@@ -271,7 +271,8 @@ export const usersProjectsRelations = relations(usersProjects, ({ one }) => ({
 
 export const projectRelations = relations(project, ({ many }) => ({
   usersProjects: many(usersProjects),
-  features: many(feature)
+  features: many(feature),
+  tags: many(tag)
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
