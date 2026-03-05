@@ -26,35 +26,35 @@ interface PageProps {
 }
 
 export interface QFeature {
+  id: string;
+  createdAt: Date;
+  description: string | null;
+  projectId: string;
+  title: string;
+  status: "under_review" | "planned" | "in_progress" | "done" | "closed";
+  upvotesCount: number;
+  authorName: string | null;
+  authorEmail: string | null;
+  authorId: string | null;
+  aiSummary: string | null;
+  priorityScore: number | null;
+  upvotes: {
     id: string;
-    createdAt: Date;
-    description: string | null;
-    projectId: string;
-    title: string;
-    status: "under_review" | "planned" | "in_progress" | "done" | "closed";
-    upvotesCount: number;
-    authorName: string | null;
-    authorEmail: string | null;
-    authorId: string | null;
-    aiSummary: string | null;
-    priorityScore: number | null;
-    upvotes: {
-        id: string;
-    }[];
-    comments: {
-        id: string;
-    }[];
-    tags: {
-        featureId: string;
-        tagId: string;
-        tag: {
-            id: string;
-            name: string;
-            createdAt: Date;
-            projectId: string;
-            color: string;
-        };
-    }[];
+  }[];
+  comments: {
+    id: string;
+  }[];
+  tags: {
+    featureId: string;
+    tagId: string;
+    tag: {
+      id: string;
+      name: string;
+      createdAt: Date;
+      projectId: string;
+      color: string;
+    };
+  }[];
 
 }
 
@@ -91,18 +91,18 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
     status !== "all" ? eq(feature.status, status as any) : undefined,
     q
       ? or(
-          ilike(feature.title, `%${q}%`),
-          ilike(feature.description, `%${q}%`)
-        )
+        ilike(feature.title, `%${q}%`),
+        ilike(feature.description, `%${q}%`)
+      )
       : undefined,
     tagIds.length > 0
       ? inArray(
-          feature.id,
-          databaseDrizzle
-            .select({ featureId: featureTags.featureId })
-            .from(featureTags)
-            .where(inArray(featureTags.tagId, tagIds))
-        )
+        feature.id,
+        databaseDrizzle
+          .select({ featureId: featureTags.featureId })
+          .from(featureTags)
+          .where(inArray(featureTags.tagId, tagIds))
+      )
       : undefined
   );
 
@@ -182,7 +182,7 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
           )}
         >
           {/* Left panel - Feedback list */}
-          <div className="lg:col-span-1">
+          <div className="order-1 lg:col-span-1">
             <FeatureList
               features={features}
               totalPages={totalPages}
@@ -203,7 +203,7 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
               <div className="flex h-full min-h-100 items-center justify-center rounded-lg border bg-card p-8 text-center">
                 <div>
                   <div className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                  <h3 className="mt-4 text-lg font-medium">No Feature Request selected</h3>
+                  <h3 className="mt-4 text-lg font-medium">No Feature Request or Feedback selected</h3>
                   <p className="text-sm text-muted-foreground">
                     Click on a Feature Request item to view details
                   </p>
@@ -213,6 +213,7 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
           </div>
         </UpvoteProvider>
       </div>
+
     </div>
   );
 }

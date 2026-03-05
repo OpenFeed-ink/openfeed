@@ -10,7 +10,6 @@ import Link from "next/link"
 import { UpvoteButton } from "../UpvoteButton/UpvoteButton";
 import { UpsertFeature } from "../UpsertFeature/UpsertFeature";
 import { Sparkles } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { AddComments } from "../AddComments/AddComments";
 import { CommentProvider } from "@/contexts/CommentProvider";
 import { RenderComment } from "../RenderComment/RenderComment";
@@ -138,32 +137,33 @@ export async function FeatureDetail({ featureId, user, memberships }: {
             Comments ({featureData.comments.length})
           </h3>
 
-          <ScrollArea className="max-h-80 overflow-y-auto pr-3">
-            <div className="space-y-4">
-              {featureData.comments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No comments yet.</p>
-              ) : (
-                <CommentProvider
-                  feature={{
-                    id: featureData.id,
-                    projectId: featureData.projectId,
-                    comments: commentsTree,
-                    pinCommentId: featureData.pinnedComment
-                  }}
-                  user={user}
-                  memberships={memberships}
-
-                >
-                  <div className="space-y-4">
+          <div className="max-h-80 overflow-y-auto">
+            <div className="overflow-x-auto pb-2">
+              <div className="space-y-4 w-max">
+                {commentsTree.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No comments yet.</p>
+                ) : (
+                  <CommentProvider
+                    feature={{
+                      id: featureData.id,
+                      projectId: featureData.projectId,
+                      comments: commentsTree,
+                      pinCommentId: featureData.pinnedComment,
+                    }}
+                    user={user}
+                    memberships={memberships}
+                  >
                     {commentsTree.map((comment) => (
                       <RenderComment key={comment.id} comment={comment} />
                     ))}
-                  </div>
-                </CommentProvider>)}
+                  </CommentProvider>
+                )}
+              </div>
             </div>
-          </ScrollArea>
+          </div>
+
           <AddComments featureId={featureData.id} projectId={featureData.projectId} />
-        </div>
+        </div>   
       </CardContent>
     </Card>
 
@@ -194,6 +194,5 @@ function buildCommentTree(comments: DbComment[], pinnedCommentId?: string | null
   }
 
   pinnedComment && roots.unshift(pinnedComment)
- 
   return roots
 }
