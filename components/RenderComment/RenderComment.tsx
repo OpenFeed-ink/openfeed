@@ -25,7 +25,7 @@ export function RenderComment({ comment, depth = 0 }: { comment: CommentNode; de
 
   const isMobile = useIsMobile();
   const isAuthor = comment.authorId === user.id;
-  const permit = permission(memberships, comment.authorId, user.id);
+  const permit = permission(memberships, user.id);
   const isPinned = comment.id === pinCommentId;
 
   const maxDepth = 10;
@@ -85,7 +85,7 @@ export function RenderComment({ comment, depth = 0 }: { comment: CommentNode; de
                 </Button>
               )}
 
-              {isAuthor && (
+              {(isAuthor || permit.deleteComment) && (
                 <DeleteComment
                   projectId={feature.projectId}
                   featureId={feature.id}

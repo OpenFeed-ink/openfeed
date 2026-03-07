@@ -16,6 +16,7 @@ import {
 
 import { UpsertProject } from "@/components/UpsertProject/UpsertProject";
 import { DeleteProject } from "@/components/DeleteProject/DeleteProject";
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
 export default async function page() {
@@ -30,6 +31,7 @@ export default async function page() {
     where: (up, ops) => ops.eq(up.userId, session.user.id),
     columns: {
       role: true,
+
     },
     with: {
       project: true
@@ -115,20 +117,28 @@ export default async function page() {
             variants={containerVariants}
             className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6"
           >
-            {userProjects.map(({ project }) => (
+            {userProjects.map(({ project, role }) => (
               <motion.div key={project.id} variants={itemVariants}>
                 <Card
                   className="group relative cursor-pointer overflow-hidden transition-all duration-300 hover:border-teal-500/50 hover:shadow-lg"
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-100 dark:bg-teal-900/30">
-                        <FolderKanban className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                      <div className="flex items-center justify-center gap-5">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-100 dark:bg-emerald-900/30">
+                          <FolderKanban className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <Badge
+                          variant={role === "ADMIN" ? "default" : "outline"}
+                          className={role === "ADMIN" ? "bg-emerald-600 capitalize" : "capitalize"}
+                        >
+                          {role.toLowerCase()}
+                        </Badge>
                       </div>
-                      <div className="flex gap-1">
+                      {role === 'ADMIN' && (<div className="flex gap-1">
                         <UpsertProject projectData={project} />
                         <DeleteProject id={project.id} />
-                      </div>
+                      </div>)}
                     </div>
                     <Link href={`/projects/${project.id}`}>
                       <CardTitle className="mt-3 line-clamp-1 text-lg">{project.name}</CardTitle>

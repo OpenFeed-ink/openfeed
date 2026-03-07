@@ -14,6 +14,8 @@ import { AddComments } from "../AddComments/AddComments";
 import { CommentProvider } from "@/contexts/CommentProvider";
 import { RenderComment } from "../RenderComment/RenderComment";
 import { CommentNode } from "@/type"
+import { permission } from "@/lib/utils";
+import { DeleteFeature } from "../DeleteFeature/DeleteFeature";
 
 
 type Membership = {
@@ -55,6 +57,8 @@ export async function FeatureDetail({ featureId, user, memberships }: {
     }
   });
 
+  const permit = permission(memberships, user.id)
+
   if (!featureData) return null;
   const commentsTree = buildCommentTree(featureData.comments, featureData.pinnedComment)
   return (
@@ -68,7 +72,7 @@ export async function FeatureDetail({ featureId, user, memberships }: {
               {formatDistanceToNow(new Date(featureData.createdAt), { addSuffix: true })}
               {featureData.authorId ? (
                 <Button asChild variant="link" className="px-1">
-                  <Link href={`/profile/${featureData.authorId}`}>by {featureData.authorName}</Link>
+                  <Link href={`/projects/${featureData.projectId}/team`}>by {featureData.authorName}</Link>
                 </Button>
               ) : featureData.authorEmail ? (
                 <span> by {featureData.authorEmail}</span>
@@ -79,11 +83,15 @@ export async function FeatureDetail({ featureId, user, memberships }: {
           </div>
           <div className="flex items-center gap-4">
             <UpvoteButton projectId={featureData.projectId} featureId={featureData.id} />
-            <UpsertFeature
+            {(permit.upsertFeature || featureData.authorId === user.id) && <UpsertFeature
               projectId={featureData.projectId}
               feature={featureData}
               availableTags={[]}
-            />
+            />}
+            {(permit.deleteAnyFeature || featureData.authorId === user.id) && <DeleteFeature
+              id={featureData.id}
+              projectId={featureData.projectId}
+            />}
           </div>
         </div>
       </CardHeader>
@@ -163,7 +171,7 @@ export async function FeatureDetail({ featureId, user, memberships }: {
           </div>
 
           <AddComments featureId={featureData.id} projectId={featureData.projectId} />
-        </div>   
+        </div>
       </CardContent>
     </Card>
 

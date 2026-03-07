@@ -32,7 +32,7 @@ const primission = {
     billing: false,
     deleteProject: false,
     upsertFeature: true,
-    deleteAnyFeature: false,
+    deleteAnyFeature: true,
     addComment: true,
     deleteComment: true,
     canPin: true,
@@ -49,12 +49,11 @@ const primission = {
   },
 }
 
-export function permission(memberships: Membership[], authorId?: string | null, userId?: string | null) {
-  const membership = memberships.find(m => m.userId === authorId)
+export function permission(memberships: Membership[], userId: string) {
+  const membership = memberships.find(m => m.userId === userId)
   if (!membership) {
     return primission['ANONYMOUS']
   }
-  if (userId === authorId) return primission['ADMIN']
 
   return primission[membership.role]
 }

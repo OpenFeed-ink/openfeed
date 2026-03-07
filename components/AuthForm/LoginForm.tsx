@@ -23,7 +23,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authClient } from "@/lib/auth-client";
 import { Logo } from "../Logo";
-
+import Link from "next/link"
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -47,7 +47,7 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>;
 
-export function LoginForm() {
+export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -72,7 +72,7 @@ export function LoginForm() {
         toast.error(error.message || "unkown error")
         return;
       }
-      router.replace("/projects");
+      router.replace(callbackUrl ?? "/projects");
     });
   };
 
@@ -225,12 +225,12 @@ export function LoginForm() {
           <motion.div variants={itemVariants} className="text-center text-sm w-full">
             <p className="text-muted-foreground">
               Don&apos;t have an account?{" "}
-              <a
-                href="/signup"
+              <Link
+                href={callbackUrl ? `/signup?callbackUrl=${callbackUrl}` : "/signup"}
                 className="font-medium text-teal-600 transition-colors hover:text-teal-500 hover:underline"
               >
                 Sign up
-              </a>
+              </Link>
             </p>
           </motion.div>
         </CardFooter>

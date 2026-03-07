@@ -23,7 +23,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authClient } from "@/lib/auth-client";
 import { Logo } from "../Logo";
-
+import Link from 'next/link'
 
 
 const fadeUp = {
@@ -49,7 +49,7 @@ const signupSchema = z.object({
 
 type SignupValues = z.infer<typeof signupSchema>;
 
-export function SignupForm() {
+export function SignupForm({ callbackUrl }: { callbackUrl?: string }) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -77,7 +77,7 @@ export function SignupForm() {
         toast.error(error.message || "unkown error")
         return;
       }
-      router.replace("/");
+      router.replace(callbackUrl ?? "/projects");
     });
   };
 
@@ -108,7 +108,7 @@ export function SignupForm() {
     hidden: { opacity: 0, x: -20 },
     visible: { opacity: 1, x: 0 },
   };
-  
+
 
   return (
     <motion.div
@@ -246,12 +246,12 @@ export function SignupForm() {
           <motion.div variants={itemVariants} className="text-center text-sm w-full">
             <p className="text-muted-foreground">
               Already have an account?{" "}
-              <a
-                href="/signin"
+              <Link
+                href={callbackUrl ? `/signin?callbackUrl=${callbackUrl}` : "/signin"}
                 className="font-medium text-teal-600 transition-colors hover:text-teal-500 hover:underline"
               >
                 Sign in
-              </a>
+              </Link>
             </p>
           </motion.div>
 
@@ -261,13 +261,18 @@ export function SignupForm() {
             className="text-center text-xs text-muted-foreground"
           >
             By signing up, you agree to our{" "}
-            <a href="/terms" className="underline underline-offset-4 hover:text-teal-600">
+            <Link
+              href={callbackUrl ? `/terms?callbackUrl=${callbackUrl}` : "/terms"}
+              className="underline underline-offset-4 hover:text-teal-600">
               Terms of Service
-            </a>{" "}
+            </Link>{" "}
             and{" "}
-            <a href="/privacy" className="underline underline-offset-4 hover:text-teal-600">
+            <Link
+              href={callbackUrl ? `/privacy?callbackUrl=${callbackUrl}` : "/privacy"}
+              className="underline underline-offset-4 hover:text-teal-600"
+            >
               Privacy Policy
-            </a>.
+            </Link>.
           </motion.p>
         </CardFooter>
       </Card>

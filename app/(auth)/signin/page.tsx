@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description: "Sign in to your OpenFeed account",
 };
 
-export default function SignInPage() {
-  return <LoginForm />
+export default async function SignInPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string }> }) {
+  const { callbackUrl } = await searchParams
+  return <LoginForm callbackUrl={callbackUrl} />
 }

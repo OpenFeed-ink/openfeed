@@ -99,10 +99,19 @@ export const usersProjects = pgTable("users_projects", {
   primaryKey({ columns: [t.userId, t.projectId] }),
   index("user_project_idx").on(t.userId),
   index("project_user_idx").on(t.projectId)
-],
-)
+])
 
-
+export const invitation = pgTable("invitation", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  email: text("email").unique().notNull(),
+  role: roleEnum("role").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  acceptedAt: timestamp("accepted_at"),
+});
 
 export const featureStatusEnum = pgEnum("feature_statu", [
   "under_review",
@@ -140,7 +149,7 @@ export const feature = pgTable("feature", {
   priorityScore: real("priority_score"),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (t) =>[index("project_feature_idx").on(t.projectId)] )
+}, (t) => [index("project_feature_idx").on(t.projectId)])
 
 export const upvote = pgTable(
   "upvotes",
