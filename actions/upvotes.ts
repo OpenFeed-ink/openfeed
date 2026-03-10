@@ -1,33 +1,25 @@
 "use server";
 import { databaseDrizzle } from "@/db";
 import { feature, upvote } from "@/db/schema";
-import { auth } from "@/lib/auth";
 import { fromErrorToFormState, FormState, toFormState } from "@/lib/zodErrorHandle";
 import { z } from "zod";
-import { headers } from "next/headers";
 import { revalidatePath } from 'next/cache';
-import { and, eq, or, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 const UpvoteData = z.object({
   featureId: z.string().min(3),
-  projectId: z.string().min(3)
+  projectId: z.string().min(3),
+  voterToken: z.string().min(3)
 })
 
 export async function upvotesAction(_: FormState, formData: FormData) {
   try {
-    const { featureId, projectId } = UpvoteData.parse({
+    const { featureId, projectId, voterToken } = UpvoteData.parse({
       featureId: formData.get("featureId"),
-      projectId: formData.get("projectId")
+      projectId: formData.get("projectId"),
+      voterToken: formData.get("voterToken")
     })
 
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    })
-
-    if (!session?.user?.id) throw new Error("forbidden")
-
-    const voterToken = session.user.id
-    const voterEmail = session.user.email
 
     await databaseDrizzle.transaction(async (tx) => {
       // 1. try to delete existing vote
@@ -36,10 +28,7 @@ export async function upvotesAction(_: FormState, formData: FormData) {
         .where(
           and(
             eq(upvote.featureId, featureId),
-            or(
-              eq(upvote.voterToken, voterToken),
-              eq(upvote.voterEmail, voterEmail)
-            )
+            eq(upvote.voterToken, voterToken),
           )
         )
         .returning({ id: upvote.id })
@@ -57,7 +46,6 @@ export async function upvotesAction(_: FormState, formData: FormData) {
         await tx.insert(upvote).values({
           featureId,
           voterToken,
-          voterEmail,
         })
 
         await tx

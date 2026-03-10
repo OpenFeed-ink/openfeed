@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, boolean, index, pgEnum, varchar, uuid, real, uniqueIndex, integer, primaryKey, unique, AnyPgColumn } from "drizzle-orm/pg-core";
 export const planEnum = pgEnum('plan', ["FREE", 'BASIC', 'PRO', 'BUSINESS', 'ENTERPRISE', 'OS']);
-
+// todo 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -141,6 +141,7 @@ export const feature = pgTable("feature", {
 
   authorId: text("author_id")
     .references(() => user.id, { onDelete: "cascade" }),
+  visitorToken: varchar("visitor_token", { length: 255 }),
 
   pinnedComment: uuid("pinned_comment")
     .references((): AnyPgColumn => comment.id, { onDelete: "set null" }),
@@ -178,6 +179,7 @@ export const comment = pgTable("comments", {
   content: text("content").notNull(),
   authorName: varchar("author_name", { length: 255 }),
   authorId: text("author_id").references(() => user.id, { onDelete: "cascade" }),
+  visitorToken: varchar("visitor_token", { length: 255 }),
   parentId: uuid("parent_id").references((): AnyPgColumn => comment.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [

@@ -14,29 +14,28 @@ const CommentData = z.object({
   projectId: z.string().min(3),
   featureId: z.string().min(3),
   content: z.string().trim().min(1),
-  parentId: z.string().nullable()
+  parentId: z.string().nullable(),
+  userId: z.string().nullable(),
+  name: z.string().nullable(),
 })
 
 export async function upsertCommentAction(_: FormState, formData: FormData) {
   try {
-    const { id, projectId, featureId, content, parentId } = CommentData.parse({
+    const { id, projectId, featureId, content, parentId, userId, name } = CommentData.parse({
       id: formData.get("id"),
       projectId: formData.get("projectId"),
       featureId: formData.get("featureId"),
       content: formData.get("content"),
-      parentId: formData.get("parentId")
+      parentId: formData.get("parentId"),
+      userId: formData.get("userId"),
+      name: formData.get("name")
     })
 
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session?.user?.id) throw new Error("forbidden");
 
     const newComment: typeof comment.$inferInsert = {
       id: id ?? undefined,
-      authorName: session.user.name,
-      authorId: session.user.id,
+      authorName: name,
+      visitorToken: userId,
       content: content,
       featureId: featureId,
       parentId: parentId
@@ -51,6 +50,7 @@ export async function upsertCommentAction(_: FormState, formData: FormData) {
 
     return toFormState("SUCCESS", "");
   } catch (e) {
+    console.log(e)
     return fromErrorToFormState(e);
   }
 }

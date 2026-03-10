@@ -1,4 +1,3 @@
-import { User } from "better-auth";
 import { eq } from "drizzle-orm";
 import { feature } from "@/db/schema";
 import { Separator } from "@/components/ui/separator";
@@ -13,9 +12,10 @@ import { Sparkles } from "lucide-react";
 import { AddComments } from "../AddComments/AddComments";
 import { CommentProvider } from "@/contexts/CommentProvider";
 import { RenderComment } from "../RenderComment/RenderComment";
-import { CommentNode } from "@/type"
+import { Author, CommentNode } from "@/type"
 import { permission } from "@/lib/utils";
 import { DeleteFeature } from "../DeleteFeature/DeleteFeature";
+import { notFound } from "next/navigation";
 
 
 type Membership = {
@@ -24,10 +24,11 @@ type Membership = {
 }
 
 
-export async function FeatureDetail({ featureId, user, memberships }: {
+export async function FeatureDetail({ featureId, user, memberships, pub }: {
   featureId: string,
-  user: User,
-  memberships: Membership[]
+  user: Author,
+  memberships: Membership[],
+  pub?: boolean,
 }) {
 
   const featureData = await databaseDrizzle.query.feature.findFirst({
@@ -39,18 +40,14 @@ export async function FeatureDetail({ featureId, user, memberships }: {
             columns: {
               id: true,
               name: true,
-              image: true
+              image: true,
             },
           },
         },
         orderBy: (comments, { desc }) => [desc(comments.createdAt)]
       },
       upvotes: {
-        where: (u, ops) =>
-          ops.or(
-            ops.eq(u.voterToken, user.id),
-            ops.eq(u.voterEmail, user.email)
-          ),
+        where: (u, ops) => ops.eq(u.voterToken, user.id),
         columns: { id: true }
       },
       tags: { with: { tag: true } },
@@ -59,20 +56,34 @@ export async function FeatureDetail({ featureId, user, memberships }: {
 
   const permit = permission(memberships, user.id)
 
-  if (!featureData) return null;
+  if (!featureData) return notFound();
   const commentsTree = buildCommentTree(featureData.comments, featureData.pinnedComment)
+
+  const authorPermit = permission(memberships, featureData.authorId)
   return (
-    <Card className="h-full">
+    <Card className={`${pub ? "w-full h-screen" : "h-full"}`}>
       <CardHeader className="pb-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
+        <div className="flex items-start gap-4">
+          {/* Prominent upvote button */}
+          <div className="flex flex-col items-center">
+            <UpvoteButton
+              projectId={featureData.projectId}
+              featureId={featureData.id}
+              voterToken={user.id}
+            />
+          </div>
+
+          {/* Title and metadata */}
+          <div className="flex-1 min-w-0">
             <CardTitle className="text-xl">{featureData.title}</CardTitle>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground mt-1">
               Submitted{" "}
               {formatDistanceToNow(new Date(featureData.createdAt), { addSuffix: true })}
               {featureData.authorId ? (
                 <Button asChild variant="link" className="px-1">
-                  <Link href={`/projects/${featureData.projectId}/team`}>by {featureData.authorName}</Link>
+                  {permit.role !== "anonymous" ? <Link href={`/projects/${featureData.projectId}/team`}>
+                    by {featureData.authorName} ({authorPermit.role})
+                  </Link> : <p>by {featureData.authorName} ( {authorPermit.role} )</p>}
                 </Button>
               ) : featureData.authorEmail ? (
                 <span> by {featureData.authorEmail}</span>
@@ -81,17 +92,22 @@ export async function FeatureDetail({ featureId, user, memberships }: {
               ) : null}
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <UpvoteButton projectId={featureData.projectId} featureId={featureData.id} />
-            {(permit.upsertFeature || featureData.authorId === user.id) && <UpsertFeature
-              projectId={featureData.projectId}
-              feature={featureData}
-              availableTags={[]}
-            />}
-            {(permit.deleteAnyFeature || featureData.authorId === user.id) && <DeleteFeature
-              id={featureData.id}
-              projectId={featureData.projectId}
-            />}
+
+          {/* Action buttons (edit/delete) */}
+          <div className="flex items-center gap-2">
+            {(permit.editFeature || featureData.authorId === user.id) && (
+              <UpsertFeature
+                projectId={featureData.projectId}
+                feature={featureData}
+                availableTags={[]}
+              />
+            )}
+            {(permit.deleteAnyFeature || featureData.authorId === user.id) && (
+              <DeleteFeature
+                id={featureData.id}
+                projectId={featureData.projectId}
+              />
+            )}
           </div>
         </div>
       </CardHeader>
@@ -110,34 +126,35 @@ export async function FeatureDetail({ featureId, user, memberships }: {
         )}
 
         {/* AI Summary */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-teal-600" />
-            AI Summary
-          </h3>
-          {featureData.aiSummary ? (
-            <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-              {featureData.aiSummary}
-            </p>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-            >
-              {false ? (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Generate AI Summary
-                </>
-              )}
-            </Button>
-          )}
-        </div>
+        {featureData.aiSummary || permit.generateAiSummary &&
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-teal-600" />
+              AI Summary
+            </h3>
+            {featureData.aiSummary ? (
+              <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                {featureData.aiSummary}
+              </p>
+            ) : permit.generateAiSummary ? (
+              <Button
+                variant="outline"
+                size="sm"
+              >
+                {false ? (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate AI Summary
+                  </>
+                )}
+              </Button>
+            ) : <div />}
+          </div>}
 
         {/* Comments */}
         <div className="space-y-4">
@@ -145,7 +162,7 @@ export async function FeatureDetail({ featureId, user, memberships }: {
             Comments ({featureData.comments.length})
           </h3>
 
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-80 min-h-80 overflow-y-auto">
             <div className="overflow-x-auto pb-2">
               <div className="space-y-4 w-max">
                 {commentsTree.length === 0 ? (
@@ -162,15 +179,19 @@ export async function FeatureDetail({ featureId, user, memberships }: {
                     memberships={memberships}
                   >
                     {commentsTree.map((comment) => (
-                      <RenderComment key={comment.id} comment={comment} />
+                      <RenderComment key={comment.id} userId={user.id} userName={user.name} comment={comment} />
                     ))}
                   </CommentProvider>
                 )}
               </div>
             </div>
           </div>
-
-          <AddComments featureId={featureData.id} projectId={featureData.projectId} />
+          <AddComments
+            featureId={featureData.id}
+            projectId={featureData.projectId}
+            userId={user.id}
+            userName={user.name}
+          />
         </div>
       </CardContent>
     </Card>

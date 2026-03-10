@@ -12,7 +12,7 @@ import { permission } from "@/lib/utils";
 import { AddComments } from "../AddComments/AddComments";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-export function RenderComment({ comment, depth = 0 }: { comment: CommentNode; depth?: number }) {
+export function RenderComment({ comment, userName, userId, depth = 0 }: { comment: CommentNode; userName: string, userId: string; depth?: number }) {
   const {
     user,
     feature,
@@ -24,7 +24,7 @@ export function RenderComment({ comment, depth = 0 }: { comment: CommentNode; de
   } = useComment();
 
   const isMobile = useIsMobile();
-  const isAuthor = comment.authorId === user.id;
+  const isAuthor = comment.authorId === user.id || comment.visitorToken === user.id;
   const permit = permission(memberships, user.id);
   const isPinned = comment.id === pinCommentId;
 
@@ -118,6 +118,8 @@ export function RenderComment({ comment, depth = 0 }: { comment: CommentNode; de
                 featureId={feature.id}
                 projectId={feature.projectId}
                 parentId={replyingTo}
+                userName={userName}
+                userId={userId}
                 afterAction={() => setReplyingTo(null)}
               />
             </div>
@@ -131,6 +133,8 @@ export function RenderComment({ comment, depth = 0 }: { comment: CommentNode; de
           {comment.replies.map((reply) => (
             <RenderComment
               key={reply.id}
+              userName={userName}
+              userId={userId}
               comment={reply}
               depth={effectiveDepth + 1}
             />

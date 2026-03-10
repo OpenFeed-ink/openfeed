@@ -17,6 +17,8 @@ interface FeatureListProps {
   totalPages: number;
   currentPage: number;
   selectedFeatureId?: string;
+  userId: string
+  pub?:boolean
 }
 
 const statusLabels: Record<QFeature["status"], string> = {
@@ -35,11 +37,18 @@ const statusColors: Record<QFeature["status"], string> = {
   closed: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
 };
 
-export function FeatureList({ features, totalPages, currentPage, selectedFeatureId }: FeatureListProps) {
+export function FeatureList({ features, totalPages, currentPage, userId,pub, selectedFeatureId }: FeatureListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const handleSelect = (featureId: string) => {
+    if(pub) {
+      window.parent.postMessage({
+        type:  "openfeed:open-feature",
+        featureId
+      },"*")
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.set("featureId", featureId);
     router.push(`?${params.toString()}`);
@@ -53,7 +62,7 @@ export function FeatureList({ features, totalPages, currentPage, selectedFeature
 
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       <div className="space-y-2 max-h-[calc(100vh-80px)] overflow-y-auto pr-2">
         {features.length === 0 ? (
           <Card className="p-8 text-center">
@@ -91,7 +100,7 @@ export function FeatureList({ features, totalPages, currentPage, selectedFeature
                   {/* Tags */}
                   {feature.tags && feature.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-1">
-                      {feature.tags.map(({ tag }: any) => (
+                      {feature.tags.map(({ tag }) => (
                         <Badge
                           key={tag.id}
                           variant="outline"
@@ -111,6 +120,7 @@ export function FeatureList({ features, totalPages, currentPage, selectedFeature
                       <UpvoteButton
                         projectId={feature.projectId}
                         featureId={feature.id}
+                        voterToken={userId}
                         size="sm"
                       />
                       <span className="flex items-center gap-1">

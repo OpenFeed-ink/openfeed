@@ -1,11 +1,11 @@
 export type UserProject = {
-    role: "ADMIN" | "MEMBER";
-    project: {
-        id: string;
-        name: string;
-        createdAt: Date;
-        description: string | null;
-    };
+  role: "ADMIN" | "MEMBER";
+  project: {
+    id: string;
+    name: string;
+    createdAt: Date;
+    description: string | null;
+  };
 }
 
 export type SimilarFeature = {
@@ -29,6 +29,7 @@ export type CommentNode = {
   createdAt: Date
   authorName: string | null
   authorId: string | null
+  visitorToken: string | null
   author: Author | null
   parentId: string | null
   replies: CommentNode[]

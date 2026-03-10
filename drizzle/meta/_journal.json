@@ -113,6 +113,41 @@
       "when": 1772820350140,
       "tag": "0015_gifted_pride",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1773070369520,
+      "tag": "0016_flat_genesis",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1773070530097,
+      "tag": "0017_yummy_blade",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1773070705635,
+      "tag": "0018_hot_hobgoblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1773070763984,
+      "tag": "0019_cultured_young_avengers",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1773128150133,
+      "tag": "0020_ambiguous_psylocke",
+      "breakpoints": true
     }
   ]
 }

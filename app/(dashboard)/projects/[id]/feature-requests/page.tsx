@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from 'next/navigation'
 import { UpsertFeature } from "@/components/UpsertFeature/UpsertFeature";
 import { UpvoteProvider } from "@/contexts/UpvoteProvider";
-import { isUUID } from "@/lib/utils";
+import { isUUID, permission } from "@/lib/utils";
 import { and, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { feature, featureTags, project, usersProjects } from "@/db/schema";
 import { FeatureFilters } from "@/components/FeatureFilters/FeatureFilters";
@@ -55,7 +55,6 @@ export interface QFeature {
       color: string;
     };
   }[];
-
 }
 
 
@@ -146,6 +145,8 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
     columns: { userId: true, role: true },
   });
 
+  const permit = permission(memberships, session.user.id)
+
   return (
     <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
       {/* Header */}
@@ -158,7 +159,7 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
             Manage and respond to user feedback
           </p>
         </div>
-        <UpsertFeature projectId={id} availableTags={projectData.tags} />
+        {permit.addNewFeature && <UpsertFeature projectId={id} availableTags={projectData.tags} />}
       </div>
 
       {/* Filters */}
@@ -188,6 +189,7 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
               totalPages={totalPages}
               currentPage={currentPage}
               selectedFeatureId={featureId}
+              userId={session.user.id}
             />
           </div>
 
@@ -196,7 +198,11 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
             {featureId && isUUID(featureId) ? (
               <FeatureDetail
                 featureId={featureId}
-                user={session.user}
+                user={{
+                  id: session.user.id,
+                  name: session.user.name,
+                  image: session.user.image ?? null
+                }}
                 memberships={memberships}
               />
             ) : (
@@ -213,7 +219,6 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
           </div>
         </UpvoteProvider>
       </div>
-
     </div>
   );
 }

@@ -12,12 +12,14 @@ import { useUpvote } from "@/contexts/UpvoteProvider";
 interface UpvoteButtonProps {
   featureId: string;
   projectId: string;
+  voterToken: string;
   size?: "sm" | "default";
 }
 
 export function UpvoteButton({
   featureId,
   projectId,
+  voterToken,
   size = "default",
 }: UpvoteButtonProps) {
   const { votes, toggleVote } = useUpvote();
@@ -38,6 +40,7 @@ export function UpvoteButton({
     const data = new FormData();
     data.set("featureId", featureId);
     data.set("projectId", projectId);
+    data.set("voterToken", voterToken);
 
     startTransition(() => {
       toggleVote(featureId);
@@ -45,18 +48,17 @@ export function UpvoteButton({
     });
   }
 
-  const sizeClasses = size === "sm" ? "h-7 px-2 text-xs" : "h-9 px-3";
+  const sizeClasses = size === "sm" ? "h-7 px-2 text-xs" : "h-16 px-3";
 
   return (
     <Button
       variant="outline"
-      size="sm"
+      size="lg"
       onClick={handleClick}
-      className={`group relative overflow-hidden transition-all ${sizeClasses} ${
-        vote?.voted
-          ? "border-teal-500 bg-teal-50 text-teal-700 dark:bg-teal-950/30 dark:text-teal-400"
-          : ""
-      }`}
+      className={`group relative overflow-hidden transition-all cursor-pointer ${sizeClasses} ${vote?.voted
+        ? "border-teal-500 bg-teal-50 text-teal-700 dark:bg-teal-950/30 dark:text-teal-400"
+        : ""
+        }`}
     >
       <motion.div
         className="flex items-center gap-1"
@@ -64,9 +66,8 @@ export function UpvoteButton({
         transition={{ duration: 0.2 }}
       >
         <ArrowUp
-          className={`h-3 w-3 transition-transform ${
-            vote?.voted ? "-translate-y-0.5" : ""
-          }`}
+          className={`h-3 w-3 transition-transform ${vote?.voted ? "-translate-y-0.5" : ""
+            }`}
         />
         <motion.span key={vote?.count}>
           {vote?.count}

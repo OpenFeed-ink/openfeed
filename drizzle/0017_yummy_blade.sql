@@ -1,0 +1,1 @@
+ALTER TABLE "feature" ALTER COLUMN "author_id" SET NOT NULL;

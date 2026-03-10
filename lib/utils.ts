@@ -21,18 +21,22 @@ const primission = {
     role: "admin",
     billing: true,
     deleteProject: true,
-    upsertFeature: true,
+    editFeature: true,
+    addNewFeature: true,
     deleteAnyFeature: true,
+    generateAiSummary: true,
     addComment: true,
     deleteComment: true,
-    canPin:true
+    canPin: true
   },
   "MEMBER": {
     role: "member",
     billing: false,
     deleteProject: false,
-    upsertFeature: true,
+    editFeature: false,
+    addNewFeature: true,
     deleteAnyFeature: true,
+    generateAiSummary: true,
     addComment: true,
     deleteComment: true,
     canPin: true,
@@ -41,15 +45,18 @@ const primission = {
     role: "anonymous",
     billing: false,
     deleteProject: false,
-    upsertFeature: true,
+    editFeature: false,
+    addNewFeature: true,
     deleteAnyFeature: false,
+    generateAiSummary: false,
     addComment: true,
     deleteComment: false,
     canPin: false
   },
 }
 
-export function permission(memberships: Membership[], userId: string) {
+export function permission(memberships: Membership[], userId?: string | null) {
+  if (!userId) return primission['ANONYMOUS']
   const membership = memberships.find(m => m.userId === userId)
   if (!membership) {
     return primission['ANONYMOUS']

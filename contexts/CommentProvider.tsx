@@ -2,8 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 import { toast } from "sonner";
-import { CommentNode } from "@/type"
-import { User } from "better-auth";
+import { Author, CommentNode } from "@/type"
 import { pinCommentAction } from "@/actions/comments";
 import { EMPTY_FORM_STATE } from "@/lib/zodErrorHandle";
 
@@ -16,7 +15,7 @@ type Feature = {
 
 type CommentContextType = {
   feature: Feature;
-  user: { id: string; name: string; email: string };
+  user: Author;
   memberships: { userId: string; role: "ADMIN" | "MEMBER" }[];
 
   replyingTo: string | null;
@@ -36,7 +35,7 @@ export function CommentProvider({
   children,
 }: {
   feature: Feature;
-  user: User;
+  user: Author;
   memberships: { userId: string; role: "ADMIN" | "MEMBER" }[];
   children: React.ReactNode;
 }) {
