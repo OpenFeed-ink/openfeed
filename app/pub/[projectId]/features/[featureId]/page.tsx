@@ -58,6 +58,7 @@ export default async function page({ params, searchParams }: { params: Promise<{
       >
         <FeatureDetail user={visitorUser} memberships={memberships} featureId={featureId} pub={true} />
       </UpvoteProvider>
+
     </ThemeController>
   )
 }

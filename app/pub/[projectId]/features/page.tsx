@@ -8,7 +8,6 @@ import { notFound } from "next/navigation";
 export default async function page({ params, searchParams }: { params: Promise<{ projectId: string }>, searchParams: Promise<{ theme: string }> }) {
   const { projectId } = await params
   const { theme } = await searchParams
-  console.log({ theme })
   const cookieStore = await cookies()
 
   const visitorToken = cookieStore.get("visitor_token")?.value

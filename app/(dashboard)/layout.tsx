@@ -2,9 +2,10 @@ import { auth } from "@/lib/auth";
 import { redirect } from 'next/navigation'
 import { headers } from "next/headers";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/theme-provider";
 
 
-export default async function AuthLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -16,9 +17,16 @@ export default async function AuthLayout({
   if (!session) redirect("/signin");
 
   return (
-    <TooltipProvider>
-      {children}
-    </TooltipProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <TooltipProvider>
+        {children}
+      </TooltipProvider>
+    </ThemeProvider>
 
   );
 }

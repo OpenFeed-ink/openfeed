@@ -42,11 +42,6 @@ export default function RootLayout({
           <main
             className="relative flex min-h-screen"
           >
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute -left-4 top-1/4 h-72 w-72 animate-blob rounded-full bg-teal-200/30 mix-blend-multiply blur-xl filter dark:bg-teal-900/20" />
-              <div className="absolute -right-4 top-1/3 h-72 w-72 animate-blob animation-delay-2000 rounded-full bg-cyan-200/30 mix-blend-multiply blur-xl filter dark:bg-cyan-900/20" />
-              <div className="absolute bottom-1/4 left-20 h-72 w-72 animate-blob animation-delay-4000 rounded-full bg-emerald-200/30 mix-blend-multiply blur-xl filter dark:bg-emerald-900/20" />
-            </div>
             {children}
           </main>
         </ThemeProvider>
