@@ -81,9 +81,8 @@ export function FeatureList({ features, totalPages, currentPage, userId,pub, sel
                   ? "border-teal-500 ring-1 ring-teal-500 m-2"
                   : ""
                   }`}
-                onClick={() => handleSelect(feature.id)}
               >
-                <CardHeader className="p-4 pb-2">
+                <CardHeader className="p-4 pb-2"  onClick={() => handleSelect(feature.id)}>
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-base line-clamp-1">
                       {feature.title}

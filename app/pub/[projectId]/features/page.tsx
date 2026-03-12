@@ -1,11 +1,14 @@
 import { FeatureList } from "@/components/FeatureLists/FeatureList";
+import ThemeController from "@/components/ThemeController";
 import { UpvoteProvider } from "@/contexts/UpvoteProvider";
 import { databaseDrizzle } from "@/db";
 import { cookies } from 'next/headers'
 import { notFound } from "next/navigation";
 
-export default async function page({ params }: { params: Promise<{ projectId: string }> }) {
+export default async function page({ params, searchParams }: { params: Promise<{ projectId: string }>, searchParams: Promise<{ theme: string }> }) {
   const { projectId } = await params
+  const { theme } = await searchParams
+  console.log({ theme })
   const cookieStore = await cookies()
 
   const visitorToken = cookieStore.get("visitor_token")?.value
@@ -26,22 +29,24 @@ export default async function page({ params }: { params: Promise<{ projectId: st
     },
   });
 
-
-  return (<UpvoteProvider
-    initialVotes={Object.fromEntries(
-      features.map((f) => [
-        f.id,
-        { voted: f.upvotes.length > 0, count: f.upvotesCount },
-      ])
-    )}
-  >
-    <FeatureList
-      features={features}
-      totalPages={1}
-      currentPage={1}
-      userId={visitorToken}
-      pub={true}
-    />
-  </UpvoteProvider>
+  return (
+    <ThemeController theme={theme}>
+      <UpvoteProvider
+        initialVotes={Object.fromEntries(
+          features.map((f) => [
+            f.id,
+            { voted: f.upvotes.length > 0, count: f.upvotesCount },
+          ])
+        )}
+      >
+        <FeatureList
+          features={features}
+          totalPages={1}
+          currentPage={1}
+          userId={visitorToken}
+          pub={true}
+        />
+      </UpvoteProvider>
+    </ThemeController>
   )
 }
