@@ -4,27 +4,12 @@ import { WidgetBuilderProvider } from "@/contexts/WidgetBuilderProvider";
 import { SaveStyleBtn } from "@/components/SaveStyleBtn/SaveStyleBtn";
 import type { Config } from "@/type"
 import { databaseDrizzle } from "@/db";
+import { defaultConfig } from "@/lib/utils";
 
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
-const defaultConfig:Config = {
-    theme: "dark",
-    widgetName: "My Awesome Project",
-    info: "Share your feedback and ideas",
-    triggerBtn: {
-      position: "drawer-left",
-      color: "#14b8a6",
-      textColor: "#ffffff",
-      size: "lg",
-      text: "Feedback",
-      icon: "message-square",
-    },
-    showFeedback: true,
-    showChangeLog: true,
-    showRoadmap: true,
-  }
 
 export default async function WidgetBuilderPage({ params }: PageProps) {
   const { id } = await params

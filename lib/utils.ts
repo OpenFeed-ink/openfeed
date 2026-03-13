@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx"
+import { Config } from "@/type"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -64,3 +65,21 @@ export function permission(memberships: Membership[], userId?: string | null) {
 
   return primission[membership.role]
 }
+
+export const defaultConfig:Config = {
+    theme: "dark",
+    widgetName: "My Awesome Project",
+    info: "Share your feedback and ideas",
+    triggerBtn: {
+      position: "drawer-left",
+      color: "#14b8a6",
+      textColor: "#ffffff",
+      size: "lg",
+      text: "Feedback",
+      icon: "message-square",
+    },
+    showFeedback: true,
+    showChangeLog: true,
+    showRoadmap: true,
+  }
+
