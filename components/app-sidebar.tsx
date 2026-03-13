@@ -8,7 +8,7 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar"
-import { LifeBuoyIcon, Lightbulb, Map, FileText, PaintRoller, Users, Brain } from "lucide-react"
+import { LifeBuoyIcon, Lightbulb, Map, FileText, Users, Brain, Palette } from "lucide-react"
 import { ProjectSwitcher } from "./project-switcher"
 import { UserProject } from "@/type"
 
@@ -64,8 +64,7 @@ export function AppSidebar({ userProject, allProjects, user }: {
         title: "Widget Builder",
         url: `/projects/${project.id}/widget-builder`,
         icon: (
-          <PaintRoller
-          />
+          <Palette />
         ),
       },
       {

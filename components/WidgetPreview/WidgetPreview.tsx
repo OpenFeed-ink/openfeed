@@ -1,15 +1,13 @@
 "use client"
 
+import { useWidgetBuilder } from "@/contexts/WidgetBuilderProvider"
 import { useMemo } from "react"
-import type { Config } from "@/type"
 
-interface WidgetPreviewProps {
-  config: Config
-}
 
-export function WidgetPreview({ config }: WidgetPreviewProps) {
+export function WidgetPreview({projectId}:{projectId:string}) {
+  const { config } = useWidgetBuilder()
   const iframeSrc = useMemo(() => {
-    const encoded = encodeURIComponent(JSON.stringify(config))
+    const encoded = encodeURIComponent(JSON.stringify({...config, projectId}))
     return `/widget-preview?config=${encoded}`
   }, [config])
 

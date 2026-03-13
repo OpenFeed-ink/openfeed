@@ -38,13 +38,13 @@ export default async function page({ params, searchParams }: { params: Promise<{
           ])
         )}
       >
-        <FeatureList
-          features={features}
-          totalPages={1}
-          currentPage={1}
-          userId={visitorToken}
-          pub={true}
-        />
+          <FeatureList
+            features={features}
+            totalPages={1}
+            currentPage={1}
+            userId={visitorToken}
+            pub={true}
+          />
       </UpvoteProvider>
     </ThemeController>
   )

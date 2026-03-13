@@ -148,6 +148,34 @@
       "when": 1773128150133,
       "tag": "0020_ambiguous_psylocke",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1773390683474,
+      "tag": "0021_lame_kinsey_walden",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1773394741148,
+      "tag": "0022_certain_thundra",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1773394800307,
+      "tag": "0023_young_famine",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1773397736081,
+      "tag": "0024_open_lady_bullseye",
+      "breakpoints": true
     }
   ]
 }

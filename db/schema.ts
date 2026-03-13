@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, boolean, index, pgEnum, varchar, uuid, real, uniqueIndex, integer, primaryKey, unique, AnyPgColumn } from "drizzle-orm/pg-core";
 export const planEnum = pgEnum('plan', ["FREE", 'BASIC', 'PRO', 'BUSINESS', 'ENTERPRISE', 'OS']);
-// todo 
+
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -198,6 +198,43 @@ export const tag = pgTable("tag", {
 }, (t) => [
   unique("tag_project_name_unique").on(t.projectId, t.name),
 ]);
+
+export const themeEnum = pgEnum("theme", [
+  "dark", "light", "system",
+])
+export const triggerBtnSizeEnum = pgEnum("triggerBtn_size", [
+  "default", "xs", "sm", "lg", "icon", "icon-xs", "icon-sm", "icon-lg"
+])
+
+export const triggerBtnEnum = pgEnum("triggerBtn_position", [
+  "float-bottom-right",
+  "float-bottom-left",
+  "float-up-right",
+  "float-up-left",
+  "drawer-left",
+  "drawer-right"
+])
+
+export const widgetConfig = pgTable("widget_config", {
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" })
+    .unique(),
+  theme: themeEnum("theme").default('system').notNull(),
+  widgetName: varchar("widget_name", { length: 50 }).default("My Awesome Project").notNull(),
+  info: varchar("info", { length: 255 }).default("Share your feedback and ideas"),
+  triggerBtn_position: triggerBtnEnum("triggerBtn_position").default('drawer-right').notNull(),
+  triggerBtn_color: varchar("triggerBtn_color", { length: 7 }).default("#14b8a6").notNull(), // hex color
+  triggerBtn_textColor: varchar("triggerBtn_textColor", { length: 7 }).default("#ffffff").notNull(), // hex color
+
+  triggerBtn_text: varchar("triggerBtn_text", { length: 255 }).default("Feedback"),
+  triggerBtn_icon: varchar("triggerBtn_icon", { length: 255 }).default("message-square"),
+  triggerBtn_size: triggerBtnSizeEnum("triggerBtn_size").default('default').notNull(),
+
+  showFeedback: boolean("showFeedback").default(true).notNull(),
+  showChangeLog: boolean("showChangeLog").default(false).notNull(),
+  showRoadmap: boolean("showRoadmap").default(false).notNull(),
+}, (t) => [index("project_widgetConfig_idx").on(t.projectId)])
 
 
 export const tagRelations = relations(tag, ({ one, many }) => ({
