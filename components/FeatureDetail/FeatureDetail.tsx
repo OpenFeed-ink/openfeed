@@ -24,11 +24,10 @@ type Membership = {
 }
 
 
-export async function FeatureDetail({ featureId, user, memberships, pub }: {
+export async function FeatureDetail({ featureId, user, memberships }: {
   featureId: string,
   user: Author,
   memberships: Membership[],
-  pub?: boolean,
 }) {
 
   const featureData = await databaseDrizzle.query.feature.findFirst({
@@ -61,7 +60,7 @@ export async function FeatureDetail({ featureId, user, memberships, pub }: {
 
   const authorPermit = permission(memberships, featureData.authorId)
   return (
-    <Card className={`${pub ? "w-full h-screen" : "h-full"}`}>
+    <Card className={"h-full w-full"}>
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
           {/* Prominent upvote button */}
@@ -191,6 +190,7 @@ export async function FeatureDetail({ featureId, user, memberships, pub }: {
             projectId={featureData.projectId}
             userId={user.id}
             userName={user.name}
+            isAnonymous={permit.role ===  "anonymous"}
           />
         </div>
       </CardContent>

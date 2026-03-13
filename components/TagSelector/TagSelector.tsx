@@ -9,6 +9,7 @@ import { tag } from "@/db/schema";
 type Tag = typeof tag.$inferSelect
 
 interface TagSelectorProps {
+  addNewTag?: boolean;
   projectId: string;
   selectedTags: Tag[];
   handleSelectTag: (tag: Tag) => void;
@@ -16,6 +17,7 @@ interface TagSelectorProps {
 }
 
 export function TagSelector({
+  addNewTag,
   projectId,
   selectedTags,
   handleSelectTag,
@@ -46,7 +48,7 @@ export function TagSelector({
             </span>
           </Button>
         ))}
-        <AddNewTag projectId={projectId} />
+        {addNewTag !== false && <AddNewTag projectId={projectId} />}
       </div>
 
       {/* Available tags as selectable badges */}

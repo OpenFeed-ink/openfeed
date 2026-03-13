@@ -17,28 +17,35 @@ const CommentData = z.object({
   parentId: z.string().nullable(),
   userId: z.string().nullable(),
   name: z.string().nullable(),
+  isAnonymous: z.enum(["FALSE", "TRUE"])
 })
 
 export async function upsertCommentAction(_: FormState, formData: FormData) {
   try {
-    const { id, projectId, featureId, content, parentId, userId, name } = CommentData.parse({
+    const { id, projectId, featureId, content, parentId, userId, name, isAnonymous } = CommentData.parse({
       id: formData.get("id"),
       projectId: formData.get("projectId"),
       featureId: formData.get("featureId"),
       content: formData.get("content"),
       parentId: formData.get("parentId"),
       userId: formData.get("userId"),
-      name: formData.get("name")
+      name: formData.get("name"),
+      isAnonymous: formData.get("isAnonymous")
     })
 
 
     const newComment: typeof comment.$inferInsert = {
       id: id ?? undefined,
       authorName: name,
-      visitorToken: userId,
       content: content,
       featureId: featureId,
       parentId: parentId
+    }
+
+    if (isAnonymous === 'TRUE') {
+      newComment.visitorToken = userId
+    } else {
+      newComment.authorId = userId
     }
 
     await databaseDrizzle
@@ -50,7 +57,6 @@ export async function upsertCommentAction(_: FormState, formData: FormData) {
 
     return toFormState("SUCCESS", "");
   } catch (e) {
-    console.log(e)
     return fromErrorToFormState(e);
   }
 }

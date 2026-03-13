@@ -15,37 +15,42 @@ const ProjectData = z.object({
   id: z.string().nullable(),
   projectId: z.string().min(3),
   title: z.string().min(3),
+  userId: z.string().min(3),
+  userName: z.string().min(3),
   description: z.string().nullable(),
   tagIds: z.string().array(),
-  status: z.enum(["under_review", "planned", "in_progress", "done", "closed"])
+  status: z.enum(["under_review", "planned", "in_progress", "done", "closed"]),
+  isAnonymous: z.enum(["FALSE", "TRUE"])
 })
 
 
 export async function upsertFeaturesAction(_: FormState, formData: FormData) {
   try {
-    const { id, projectId, title, description, status, tagIds } = ProjectData.parse({
+    const { id, projectId, title, description, status, tagIds, userName, userId, isAnonymous } = ProjectData.parse({
       id: formData.get("id"),
       projectId: formData.get("projectId"),
       title: formData.get("title"),
       description: formData.get("description"),
       status: formData.get("status"),
-      tagIds: formData.getAll("tagIds")
+      tagIds: formData.getAll("tagIds"),
+      userId: formData.get("userId"),
+      userName: formData.get("userName"),
+      isAnonymous: formData.get("isAnonymous")
     })
-
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session?.user?.id) throw new Error("forbidden");
 
     const newFeature: typeof feature.$inferInsert = {
       id: id ?? undefined,
       projectId: projectId,
       title: title,
       description: description,
-      authorId: session.user.id,
-      authorName: session.user.name,
+      authorName: userName,
       status: status,
+    }
+
+    if (isAnonymous === 'TRUE') {
+      newFeature.visitorToken = userId
+    } else {
+      newFeature.authorId = userId
     }
 
     await databaseDrizzle.transaction(async (tx) => {

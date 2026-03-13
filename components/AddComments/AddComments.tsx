@@ -10,11 +10,12 @@ import { useFormStatus } from "react-dom";
 import { comment } from "@/db/schema";
 
 
-export const AddComments = ({ featureId, projectId, parentId, userId, userName, currentComment, afterAction }: {
+export const AddComments = ({ featureId, projectId, parentId, userId, userName, currentComment, afterAction, isAnonymous }: {
   featureId: string,
   projectId: string,
   userId: string,
   userName: string,
+  isAnonymous: boolean,
   currentComment?: typeof comment.$inferInsert,
   parentId?: string,
   afterAction?: () => void
@@ -33,8 +34,9 @@ export const AddComments = ({ featureId, projectId, parentId, userId, userName, 
     <form className="flex gap-2" action={(data) => {
       data.set("projectId", projectId)
       data.set("featureId", featureId)
-      data.set("userId", userId),
+      data.set("userId", userId)
       data.set("name", userName)
+      data.set("isAnonymous", isAnonymous ? "TRUE" : "FALSE")
 
       if (parentId) data.set("parentId", parentId)
       formAction(data)
