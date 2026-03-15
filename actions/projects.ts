@@ -7,7 +7,7 @@ import { fromErrorToFormState, FormState, toFormState } from "@/lib/zodErrorHand
 import { z } from "zod";
 import { headers } from "next/headers";
 import { revalidatePath } from 'next/cache';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 
 const ProjectData = z.object({
@@ -98,3 +98,45 @@ export async function deleteProjectAction(_: FormState, formData: FormData) {
   }
 }
 
+export async function toggleRoadmapColumn(_: FormState, formData: FormData) {
+  try {
+    const { id, hide, status } = z.object({
+      id: z.string().min(5),
+      hide: z.string().transform(t => t.toLowerCase() === "true"),
+      status: z.string().min(3),
+    }).parse({
+      id: formData.get("projectId"),
+      hide: formData.get("hide"),
+      status: formData.get("status")
+    })
+
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session?.user?.id) throw new Error("forbidden");
+
+
+    if (hide) {
+      // Add status to hidden columns array
+      await databaseDrizzle
+        .update(project)
+        .set({
+          roadmapHiddenColumns: sql`array_append(${project.roadmapHiddenColumns}, ${status})`,
+        })
+        .where(eq(project.id, id));
+    } else {
+      // Remove status from hidden columns array
+      await databaseDrizzle
+        .update(project)
+        .set({
+          roadmapHiddenColumns: sql`array_remove(${project.roadmapHiddenColumns}, ${status})`,
+        })
+        .where(eq(project.id, id));
+    }
+
+    revalidatePath(`/projects/${id}/roadmap`);
+    return toFormState("SUCCESS", `Column ${status.replaceAll("_", " ")} will ${hide ? "no longer" : "now"} appear on public roadmap.`);
+  } catch (e) {
+    return fromErrorToFormState(e);
+  }
+}

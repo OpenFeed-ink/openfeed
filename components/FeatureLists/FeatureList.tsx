@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { QFeature } from "@/app/(dashboard)/projects/[id]/feature-requests/page";
 import { UpvoteButton } from "../UpvoteButton/UpvoteButton";
+import { statusColors, statusLabels } from "@/type";
 
 
 interface FeatureListProps {
@@ -21,21 +22,6 @@ interface FeatureListProps {
   pub?:boolean
 }
 
-const statusLabels: Record<QFeature["status"], string> = {
-  under_review: "Under Review",
-  planned: "Planned",
-  in_progress: "In Progress",
-  done: "Done",
-  closed: "Closed",
-};
-
-const statusColors: Record<QFeature["status"], string> = {
-  under_review: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  planned: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  in_progress: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  done: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  closed: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-};
 
 export function FeatureList({ features, totalPages, currentPage, userId,pub, selectedFeatureId }: FeatureListProps) {
   const router = useRouter();

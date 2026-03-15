@@ -79,6 +79,7 @@ export const project = pgTable("project", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
+  roadmapHiddenColumns: text("roadmap_hidden_columns").array().default([]).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 })
 // ADMIN: full access

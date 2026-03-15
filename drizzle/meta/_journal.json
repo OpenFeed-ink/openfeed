@@ -176,6 +176,13 @@
       "when": 1773397736081,
       "tag": "0024_open_lady_bullseye",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1773489919234,
+      "tag": "0025_calm_joystick",
+      "breakpoints": true
     }
   ]
 }

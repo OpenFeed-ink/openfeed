@@ -129,3 +129,30 @@ export async function deleteFeatureAction(_: FormState, formData: FormData) {
   }
 }
 
+export async function updateFeatureStatus(_: FormState, formData: FormData) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session?.user?.id) throw new Error("forbidden");
+
+    const { featureId, newStatus, projectId } = z.object({
+      featureId: z.string().min(5),
+      newStatus: z.enum(["under_review", "planned", "in_progress", "done", "closed"]),
+      projectId: z.string().min(5)
+    }).parse({
+      featureId: formData.get("featureId"),
+      newStatus: formData.get("newStatus"),
+      projectId: formData.get("projectId")
+    })
+    await databaseDrizzle
+      .update(feature)
+      .set({ status: newStatus })
+      .where(eq(feature.id, featureId))
+
+    revalidatePath(`/projects/${projectId}/roadmap`);
+    return toFormState("SUCCESS", "The Feature status has been updated.");
+  } catch (e) {
+    return fromErrorToFormState(e);
+  }
+}

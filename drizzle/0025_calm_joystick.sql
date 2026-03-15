@@ -1,0 +1,1 @@
+ALTER TABLE "project" ADD COLUMN "roadmap_hidden_columns" text[] DEFAULT '{}' NOT NULL;
