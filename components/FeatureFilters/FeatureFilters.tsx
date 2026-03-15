@@ -100,6 +100,7 @@ export function FeatureFilters({
 
         <Select
           value={currentStatus}
+          defaultValue="all"
           onValueChange={(value) => updateFilters({ status: value })}
         >
           <SelectTrigger className="w-35">
@@ -118,6 +119,7 @@ export function FeatureFilters({
 
         <Select
           value={currentSort}
+          defaultValue="newest"
           onValueChange={(value) => updateFilters({ sort: value })}
         >
           <SelectTrigger className="w-35">
