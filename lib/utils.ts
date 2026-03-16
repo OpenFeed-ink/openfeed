@@ -46,7 +46,7 @@ const primission = {
     canPin: true,
     addNewChagelog: true,
     editChagelog: true,
-    deleteChangelog: true,
+    deleteChangelog: false,
   },
   "ANONYMOUS": {
     role: "anonymous",

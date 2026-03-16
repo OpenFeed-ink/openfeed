@@ -10,7 +10,7 @@ import {
 import { Sparkles } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { categoryConfig } from "@/type"
-import { UpsertChangelog } from "../UpsertChangelog/UpsertChangelog"
+import { ChangelogActions } from "../ChangelogActions/ChangelogActions"
 
 export type ChangelogEntry = {
   id: string
@@ -32,9 +32,11 @@ export type ChangelogEntry = {
 interface ChangelogListProps {
   entries: ChangelogEntry[],
   canEdit: boolean,
+  canDelete: boolean,
+  userId: string,
 }
 
-export function ChangelogList({ entries, canEdit }: ChangelogListProps) {
+export function ChangelogList({ entries, canEdit, canDelete, userId }: ChangelogListProps) {
   if (entries.length === 0) {
     return (
       <Card className="p-12 text-center">
@@ -73,9 +75,11 @@ export function ChangelogList({ entries, canEdit }: ChangelogListProps) {
                 </div>
               </AccordionTrigger>
               {/* Edit Button */}
-              {canEdit && <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <UpsertChangelog editingEntry={entry} projectId={entry.projectId} />
-              </div>}
+              {(canEdit || canDelete || entry.user?.id === userId) && <ChangelogActions
+                entry={entry}
+                canDelete={canDelete || entry.user?.id === userId}
+                canEdit={canEdit || entry.user?.id === userId} />
+              }
             </div>
 
             <AccordionContent className="px-4 pb-6 pt-2 max-h-[75vh] overflow-auto">

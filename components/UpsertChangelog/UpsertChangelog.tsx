@@ -21,16 +21,26 @@ import {
 import { categoryConfig } from '@/type'
 import { RichTextEditor } from '../TiptapInput/TiptapInput'
 import { Button } from '@/components/ui/button'
-import { Edit, Loader2, Plus } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
 import { useState, useTransition } from 'react';
 import { upsertChangeLogAction } from '@/actions/changelog';
 import { EMPTY_FORM_STATE } from '@/lib/zodErrorHandle';
 import { toast } from 'sonner';
 import { ChangelogEntry } from '../ChangelogList/ChangelogList';
 
-export const UpsertChangelog = ({ editingEntry, projectId }: { editingEntry?: ChangelogEntry, projectId: string }) => {
+export const UpsertChangelog = ({
+  editingEntry,
+  projectId,
+  openEditChangelog,
+  setOpenEditChangelogAction,
+}: {
+  editingEntry?: ChangelogEntry,
+  projectId: string,
+  openEditChangelog?: boolean,
+  setOpenEditChangelogAction?: (open: boolean) => void,
+}) => {
   const [pending, startTransition] = useTransition()
-  const [open, setOpent] = useState(false)
+  const [open, setOpen] = useState(false)
   const [entry, setEntry] = useState({
     title: editingEntry?.title ?? "",
     content: editingEntry?.content ?? "",
@@ -53,7 +63,8 @@ export const UpsertChangelog = ({ editingEntry, projectId }: { editingEntry?: Ch
       }
       if (resp.status === 'SUCCESS') {
         toast.success(resp.message)
-        setOpent(false)
+        setOpen(false)
+        setOpenEditChangelogAction?.(false)
         return;
       }
     })
@@ -61,20 +72,16 @@ export const UpsertChangelog = ({ editingEntry, projectId }: { editingEntry?: Ch
 
 
   return (
-    <Dialog open={open} onOpenChange={setOpent}>
-      <DialogTrigger asChild>
-        {editingEntry ? (
-          <Button variant="ghost" size="icon" className="cursor-pointer">
-            <Edit className="h-4 w-4 text-muted-foreground hover:text-teal-600" />
-          </Button>
-        ) : (
+    <Dialog open={open || openEditChangelog} onOpenChange={(v) => { setOpen(v); setOpenEditChangelogAction?.(v) }}>
+      {!editingEntry && (
+        <DialogTrigger asChild>
           <Button size="lg" className="cursor-pointer hover:bg-emerald-700">
             <Plus className="mr-2 h-4 w-4" />
             New Changelog
           </Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="min-w-2xl max-h-[90vh] overflow-y-auto">
+        </DialogTrigger>
+      )}
+      <DialogContent className="md:min-w-2xl sm:min-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editingEntry ? 'Edit Entry' : 'New Changelog Entry'}</DialogTitle>
           <DialogDescription>

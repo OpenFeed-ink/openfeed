@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation'
 
 export default async function page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
- const session = await auth.api.getSession({ headers: await headers() });
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user.id) return redirect("/signin");
 
   const logs = await databaseDrizzle.query.changelogs.findMany({
@@ -23,7 +23,7 @@ export default async function page({ params }: { params: Promise<{ id: string }>
         },
         with: {
           usersProjects: {
-            where: (p, ops)=> ops.eq(p.projectId, id),
+            where: (p, ops) => ops.eq(p.projectId, id),
             columns: {
               role: true,
             }
@@ -33,10 +33,10 @@ export default async function page({ params }: { params: Promise<{ id: string }>
     }
   })
 
-  
+
   // Get memberships for role checking
   const memberships = await databaseDrizzle.query.usersProjects.findMany({
-    where:(c, ops) =>  ops.eq(c.projectId, id),
+    where: (c, ops) => ops.eq(c.projectId, id),
     columns: { userId: true, role: true },
   });
 
@@ -56,7 +56,12 @@ export default async function page({ params }: { params: Promise<{ id: string }>
           </div>
           {permit.addNewChagelog && <UpsertChangelog projectId={id} />}
         </div>
-        <ChangelogList entries={logs} canEdit={false} />
+        <ChangelogList
+          entries={logs}
+          canEdit={permit.editChagelog}
+          canDelete={permit.deleteChangelog}
+          userId={session.user.id}
+        />
       </div>
     </div>
   )
