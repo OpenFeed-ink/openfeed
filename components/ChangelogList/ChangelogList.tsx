@@ -71,7 +71,7 @@ export function ChangelogList({ entries, canEdit, canDelete, userId }: Changelog
                     <Icon className="h-3 w-3 mr-1" />
                     {config.label}
                   </Badge>
-                  <span className="font-semibold md:text-xl wrap-break-word w-full">{entry.title}</span>
+                  <span className="font-semibold sm:text-xl wrap-break-word w-full">{entry.title}</span>
                 </div>
               </AccordionTrigger>
               {/* Edit Button */}
