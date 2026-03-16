@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['class'],
+  plugins: [require('@tailwindcss/typography')],
   theme: {
     extend: {
       fontFamily: {

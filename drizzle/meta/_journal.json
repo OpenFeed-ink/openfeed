@@ -183,6 +183,20 @@
       "when": 1773489919234,
       "tag": "0025_calm_joystick",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1773667767190,
+      "tag": "0026_daffy_firebird",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1773667890834,
+      "tag": "0027_cultured_lady_deathstrike",
+      "breakpoints": true
     }
   ]
 }

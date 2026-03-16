@@ -237,6 +237,22 @@ export const widgetConfig = pgTable("widget_config", {
   showRoadmap: boolean("showRoadmap").default(false).notNull(),
 }, (t) => [index("project_widgetConfig_idx").on(t.projectId)])
 
+export const changelogCategoryEnum = pgEnum("changelog_category", [
+  "new_feature",
+  "improvement",
+  "bug_fix",
+]);
+
+export const changelogs = pgTable("changelogs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(), // HTML from Tiptap
+  category: changelogCategoryEnum("category").default("new_feature").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 export const tagRelations = relations(tag, ({ one, many }) => ({
   project: one(project, {
@@ -329,7 +345,8 @@ export const usersProjectsRelations = relations(usersProjects, ({ one }) => ({
 export const projectRelations = relations(project, ({ many }) => ({
   usersProjects: many(usersProjects),
   features: many(feature),
-  tags: many(tag)
+  tags: many(tag),
+  changelog: many(changelogs)
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
