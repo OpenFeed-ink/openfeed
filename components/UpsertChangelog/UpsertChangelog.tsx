@@ -18,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { changelogs } from '@/db/schema'
 import { categoryConfig } from '@/type'
 import { RichTextEditor } from '../TiptapInput/TiptapInput'
 import { Button } from '@/components/ui/button'
@@ -27,8 +26,9 @@ import { useState, useTransition } from 'react';
 import { upsertChangeLogAction } from '@/actions/changelog';
 import { EMPTY_FORM_STATE } from '@/lib/zodErrorHandle';
 import { toast } from 'sonner';
+import { ChangelogEntry } from '../ChangelogList/ChangelogList';
 
-export const UpsertChangelog = ({ editingEntry, projectId }: { editingEntry?: typeof changelogs.$inferSelect, projectId: string }) => {
+export const UpsertChangelog = ({ editingEntry, projectId }: { editingEntry?: ChangelogEntry, projectId: string }) => {
   const [pending, startTransition] = useTransition()
   const [open, setOpent] = useState(false)
   const [entry, setEntry] = useState({
@@ -68,7 +68,7 @@ export const UpsertChangelog = ({ editingEntry, projectId }: { editingEntry?: ty
             <Edit className="h-4 w-4 text-muted-foreground hover:text-teal-600" />
           </Button>
         ) : (
-          <Button size="lg" className="cursor-pointer bg-teal-600 hover:bg-teal-700">
+          <Button size="lg" className="cursor-pointer hover:bg-emerald-700">
             <Plus className="mr-2 h-4 w-4" />
             New Changelog
           </Button>
@@ -82,8 +82,8 @@ export const UpsertChangelog = ({ editingEntry, projectId }: { editingEntry?: ty
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="space-y-2 flex-1">
               <Label htmlFor="title">Title</Label>
               <Input
                 id="title"

@@ -28,7 +28,10 @@ const primission = {
     generateAiSummary: true,
     addComment: true,
     deleteComment: true,
-    canPin: true
+    canPin: true,
+    addNewChagelog: true,
+    editChagelog: true,
+    deleteChangelog: true,
   },
   "MEMBER": {
     role: "member",
@@ -41,6 +44,9 @@ const primission = {
     addComment: true,
     deleteComment: true,
     canPin: true,
+    addNewChagelog: true,
+    editChagelog: true,
+    deleteChangelog: true,
   },
   "ANONYMOUS": {
     role: "anonymous",
@@ -52,7 +58,10 @@ const primission = {
     generateAiSummary: false,
     addComment: true,
     deleteComment: false,
-    canPin: false
+    canPin: false,
+    addNewChagelog: false,
+    editChagelog: false,
+    deleteChangelog: false,
   },
 }
 
@@ -66,20 +75,20 @@ export function permission(memberships: Membership[], userId?: string | null) {
   return primission[membership.role]
 }
 
-export const defaultConfig:Config = {
-    theme: "dark",
-    widgetName: "My Awesome Project",
-    info: "Share your feedback and ideas",
-    triggerBtn: {
-      position: "drawer-left",
-      color: "#14b8a6",
-      textColor: "#ffffff",
-      size: "lg",
-      text: "Feedback",
-      icon: "message-square",
-    },
-    showFeedback: true,
-    showChangeLog: true,
-    showRoadmap: true,
-  }
+export const defaultConfig: Config = {
+  theme: "dark",
+  widgetName: "My Awesome Project",
+  info: "Share your feedback and ideas",
+  triggerBtn: {
+    position: "drawer-left",
+    color: "#14b8a6",
+    textColor: "#ffffff",
+    size: "lg",
+    text: "Feedback",
+    icon: "message-square",
+  },
+  showFeedback: true,
+  showChangeLog: true,
+  showRoadmap: true,
+}
 

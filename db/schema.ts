@@ -245,6 +245,9 @@ export const changelogCategoryEnum = pgEnum("changelog_category", [
 
 export const changelogs = pgTable("changelogs", {
   id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   projectId: text("project_id")
     .notNull()
     .references(() => project.id, { onDelete: "cascade" }),
@@ -253,6 +256,17 @@ export const changelogs = pgTable("changelogs", {
   category: changelogCategoryEnum("category").default("new_feature").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const changelogsRelations = relations(changelogs, ({ one }) => ({
+  user: one(user, {
+    fields: [changelogs.userId],
+    references: [user.id],
+  }),
+  project: one(project, {
+    fields: [changelogs.projectId],
+    references: [project.id],
+  })
+}))
 
 export const tagRelations = relations(tag, ({ one, many }) => ({
   project: one(project, {
@@ -328,6 +342,7 @@ export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   comments: many(comment),
+  changelogs: many(changelogs),
   usersProjects: many(usersProjects),
 }));
 
