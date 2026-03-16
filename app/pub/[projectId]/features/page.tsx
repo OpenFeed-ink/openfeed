@@ -38,13 +38,17 @@ export default async function page({ params, searchParams }: { params: Promise<{
           ])
         )}
       >
-          <FeatureList
-            features={features}
-            totalPages={1}
-            currentPage={1}
-            userId={visitorToken}
-            pub={true}
-          />
+        <div className="w-full min-h-screen overflow-y-auto">
+          <div className="space-y-4 py-2 w-full max-w-3xl mx-auto">
+            <FeatureList
+              features={features}
+              totalPages={1}
+              currentPage={1}
+              userId={visitorToken}
+              pub={true}
+            />
+          </div>
+        </div>
       </UpvoteProvider>
     </ThemeController>
   )
