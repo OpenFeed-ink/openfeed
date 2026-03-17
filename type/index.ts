@@ -43,21 +43,35 @@ export type Membership = {
   role: "ADMIN" | "MEMBER"
 }
 
-export type Config = {
-  theme: "dark" | "light" | "system";
-  widgetName: string;
-  info: string | null;
-  triggerBtn: {
+export type AnnouncementConfig = {
+  position: 'top' | 'bottom';
+  text: string;
+  link?: string;
+  dismiss: boolean;
+  bgcolor: string;
+  textcolor: string;
+  actionBtn: string;
+}
+
+export type TriggerBtn = {
     position: "float-bottom-right" | "float-bottom-left" | "float-up-right" | "float-up-left" | "drawer-left" | "drawer-right";
     color: string;
     textColor: string;
     size: "default" | "xs" | "sm" | "lg" | "icon" | "icon-xs" | "icon-sm" | "icon-lg";
     text: string | null;
     icon: string | null;
-  };
+ 
+}
+
+export type Config = {
+  theme: "dark" | "light" | "system";
+  widgetName: string;
+  info: string | null;
+  triggerBtn: TriggerBtn;
   showFeedback: boolean;
   showChangeLog: boolean;
   showRoadmap: boolean;
+  announcement?: AnnouncementConfig,
 }
 
 export type Feature = {

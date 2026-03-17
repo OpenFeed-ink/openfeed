@@ -4,10 +4,29 @@ import type { Config } from "@/type"
 import { saveWidgetConfigAction } from "@/actions/widgets";
 import { EMPTY_FORM_STATE } from "@/lib/zodErrorHandle";
 import { toast } from "sonner";
+import { z } from "zod";
+
+
+const announcementSchema = z.object({
+  text: z
+    .string()
+    .min(5, "Make it a bit more descriptive (min 5 characters)"),
+  actionBtn: z
+    .string()
+    .min(2, "Make it a bit more descriptive (min 2 characters)"),
+})
+
+export const configSchema = z.object({
+  announcement: announcementSchema.optional(),
+})
 
 type WidgetBuilderContextType = {
   config: Config;
   pending: boolean;
+  errors: {
+    announcementText?: string;
+    actionBtn?: string;
+  },
   setConfig: (config: Config) => void;
   saveConfig: () => Promise<void>
 };
@@ -24,7 +43,7 @@ export function WidgetBuilderProvider({
   children: React.ReactNode;
 }) {
   const [pending, startTransition] = useTransition()
-
+  const [errors, setErrors] = useState<{ announcementText?: string; actionBtn?: string }>({})
   const [config, setConf] = useState<Config>(orginalConfig)
 
   const setConfig = (config: Config) => setConf(config)
@@ -32,6 +51,21 @@ export function WidgetBuilderProvider({
   const saveConfig = async () => {
     const form = new FormData()
     form.set('projectId', projectId)
+    const result = configSchema.safeParse(config)
+
+    if (!result.success) {
+      const fieldErrors = z.treeifyError(result.error).properties
+      setErrors({
+        announcementText: (fieldErrors?.announcement as any).properties?.text?.errors?.[0],
+        actionBtn: (fieldErrors?.announcement as any).properties?.actionBtn?.errors?.[0],
+      })
+
+      toast.error("Please fix the errors before saving")
+      return
+    }
+
+    // clear errors if valid
+    setErrors({})
     startTransition(async () => {
       form.set("config", JSON.stringify(config))
       const resp = await saveWidgetConfigAction(EMPTY_FORM_STATE, form)
@@ -53,6 +87,7 @@ export function WidgetBuilderProvider({
         pending,
         setConfig,
         saveConfig,
+        errors,
       }}
     >
       {children}

@@ -1,0 +1,1 @@
+ALTER TABLE "widget_config" ADD COLUMN "announcement" jsonb DEFAULT 'null'::jsonb;

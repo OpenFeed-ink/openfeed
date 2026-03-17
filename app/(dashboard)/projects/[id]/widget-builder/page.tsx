@@ -32,6 +32,7 @@ const conf = await databaseDrizzle.query.widgetConfig.findFirst({
     showFeedback: conf.showFeedback,
     showChangeLog: conf.showChangeLog,
     showRoadmap: conf.showRoadmap,
+    announcement: conf.announcement ?? undefined,
   }
 
   return (

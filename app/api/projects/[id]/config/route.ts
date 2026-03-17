@@ -33,6 +33,7 @@ export async function GET(_: NextRequest, { params }: Params) {
       showFeedback: conf.showFeedback,
       showChangeLog: conf.showChangeLog,
       showRoadmap: conf.showRoadmap,
+      announcement: conf.announcement ?? undefined,
     }
 
     return NextResponse.json(config, { status: 200 });

@@ -26,6 +26,15 @@ const configSchema = z.object({
   showFeedback: z.boolean(),
   showChangeLog: z.boolean(),
   showRoadmap: z.boolean(),
+  announcement: z.object({
+    position: z.enum(['top', 'bottom']),
+    text: z.string(),
+    link: z.string().optional(),
+    dismiss: z.boolean(),
+    bgcolor: z.string(),
+    textcolor: z.string(),
+  }).optional().nullable()
+
 })
 
 export async function saveWidgetConfigAction(_: FormState, formData: FormData) {
@@ -47,6 +56,7 @@ export async function saveWidgetConfigAction(_: FormState, formData: FormData) {
       showRoadmap: conf.showRoadmap,
       showFeedback: conf.showFeedback,
       showChangeLog: conf.showChangeLog,
+      announcement: conf.announcement ?? null,
     }
 
     await databaseDrizzle.insert(widgetConfig)

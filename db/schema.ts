@@ -1,5 +1,6 @@
+import { AnnouncementConfig } from "@/type";
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index, pgEnum, varchar, uuid, real, uniqueIndex, integer, primaryKey, unique, AnyPgColumn } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, index, pgEnum, varchar, uuid, real, uniqueIndex, integer, primaryKey, unique, AnyPgColumn, jsonb } from "drizzle-orm/pg-core";
 export const planEnum = pgEnum('plan', ["FREE", 'BASIC', 'PRO', 'BUSINESS', 'ENTERPRISE', 'OS']);
 
 export const user = pgTable("user", {
@@ -235,6 +236,7 @@ export const widgetConfig = pgTable("widget_config", {
   showFeedback: boolean("showFeedback").default(true).notNull(),
   showChangeLog: boolean("showChangeLog").default(false).notNull(),
   showRoadmap: boolean("showRoadmap").default(false).notNull(),
+  announcement:jsonb("announcement").$type<AnnouncementConfig | null>().default(null),
 }, (t) => [index("project_widgetConfig_idx").on(t.projectId)])
 
 export const changelogCategoryEnum = pgEnum("changelog_category", [

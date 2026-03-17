@@ -4,11 +4,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { HexColorPicker } from "react-colorful"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { useWidgetBuilder } from "@/contexts/WidgetBuilderProvider"
+import { Megaphone } from "lucide-react"
 
 export const AVAILABLE_ICONS = [
   "message-square",
@@ -23,8 +24,7 @@ export const AVAILABLE_ICONS = [
 
 
 export function ConfigForm() {
-  const { setConfig, config, pending } = useWidgetBuilder()
-
+  const { setConfig, config, pending, errors } = useWidgetBuilder()
   const update = (path: string[], value: any) => {
     const newConfig = { ...config }
     let obj: any = newConfig
@@ -245,6 +245,172 @@ export function ConfigForm() {
             />
           </div>
         </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+          <div className="flex items-center gap-2">
+            <Megaphone className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <CardTitle>Announcement Banner</CardTitle>
+              <CardDescription>Show important announcements to users</CardDescription>
+            </div>
+          </div>
+          <Switch
+            checked={!!config.announcement}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                // Default announcement config when enabling
+                update(['announcement'], {
+                  position: 'top',
+                  text: '',
+                  link: '',
+                  dismiss: true,
+                  bgcolor: '#114b1e',
+                  textcolor: '#e4e8cb',
+                  actionBtn: "Learn more"
+                });
+              } else {
+                // Remove announcement config when disabling
+                update(['announcement'], undefined);
+              }
+            }}
+            disabled={pending}
+          />
+        </CardHeader>
+
+        {config.announcement && (
+          <CardContent className="space-y-4">
+            {/* Position */}
+            <div className="space-y-2">
+              <Label>Position</Label>
+              <Select
+                value={config.announcement.position}
+                disabled={pending}
+                onValueChange={(v) => update(['announcement', 'position'], v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="top">Top</SelectItem>
+                  <SelectItem value="bottom">Bottom</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Announcement Text */}
+            <div className="space-y-2">
+              <Label htmlFor="announcementText">Announcement text</Label>
+              <Input
+                id="announcementText"
+                disabled={pending}
+                value={config.announcement.text}
+                onChange={(e) => update(['announcement', 'text'], e.target.value)}
+                placeholder="Important update..."
+                min={5}
+                required
+              />
+              {errors.announcementText && (
+                <p className="text-sm text-red-500">
+                  {errors.announcementText}
+                </p>
+              )}
+            </div>
+
+            {/* Link URL (optional) */}
+            <div className="space-y-2">
+              <Label htmlFor="announcementLink">Link URL (optional)</Label>
+              <Input
+                id="announcementLink"
+                disabled={pending}
+                value={config.announcement.link || ''}
+                onChange={(e) => update(['announcement', 'link'], e.target.value)}
+                placeholder="https://example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="actionbtn">Action Button</Label>
+              <Input
+                id="actionBtn"
+                disabled={pending}
+                value={config.announcement.actionBtn}
+                onChange={(e) => update(['announcement', 'actionBtn'], e.target.value)}
+                placeholder="Action Button"
+                min={5}
+                required
+              />
+              {errors.actionBtn && (
+                <p className="text-sm text-red-500">
+                  {errors.actionBtn}
+                </p>
+              )}
+            </div>
+
+            {/* Dismiss toggle */}
+            <div className="flex items-center justify-between">
+              <Label htmlFor="announcementDismiss">Allow dismiss</Label>
+              <Switch
+                id="announcementDismiss"
+                disabled={pending}
+                checked={config.announcement.dismiss}
+                onCheckedChange={(v) => update(['announcement', 'dismiss'], v)}
+              />
+            </div>
+
+            {/* Background Color */}
+            <div className="space-y-2">
+              <Label>Background color</Label>
+              <div className="flex gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-10 h-10 p-0" disabled={pending}>
+                      <div className="w-full h-full rounded" style={{ backgroundColor: config.announcement.bgcolor }} />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-3">
+                    <HexColorPicker
+                      color={config.announcement.bgcolor}
+                      onChange={(color) => update(['announcement', 'bgcolor'], color)}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Input
+                  value={config.announcement.bgcolor}
+                  disabled={pending}
+                  onChange={(e) => update(['announcement', 'bgcolor'], e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+
+            {/* Text Color */}
+            <div className="space-y-2">
+              <Label>Text color</Label>
+              <div className="flex gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-10 h-10 p-0" disabled={pending}>
+                      <div className="w-full h-full rounded" style={{ backgroundColor: config.announcement.textcolor }} />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-3">
+                    <HexColorPicker
+                      color={config.announcement.textcolor}
+                      onChange={(color) => update(['announcement', 'textcolor'], color)}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Input
+                  value={config.announcement.textcolor}
+                  disabled={pending}
+                  onChange={(e) => update(['announcement', 'textcolor'], e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          </CardContent>
+        )}
       </Card>
     </div>
   )
