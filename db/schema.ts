@@ -1,4 +1,5 @@
-import { AnnouncementConfig } from "@/type";
+import { defaultConfig } from "@/lib/utils";
+import { AnnouncementConfig, TriggerBtn } from "@/type";
 import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, boolean, index, pgEnum, varchar, uuid, real, uniqueIndex, integer, primaryKey, unique, AnyPgColumn, jsonb } from "drizzle-orm/pg-core";
 export const planEnum = pgEnum('plan', ["FREE", 'BASIC', 'PRO', 'BUSINESS', 'ENTERPRISE', 'OS']);
@@ -225,14 +226,7 @@ export const widgetConfig = pgTable("widget_config", {
   theme: themeEnum("theme").default('system').notNull(),
   widgetName: varchar("widget_name", { length: 50 }).default("My Awesome Project").notNull(),
   info: varchar("info", { length: 255 }).default("Share your feedback and ideas"),
-  triggerBtn_position: triggerBtnEnum("triggerBtn_position").default('drawer-right').notNull(),
-  triggerBtn_color: varchar("triggerBtn_color", { length: 7 }).default("#14b8a6").notNull(), // hex color
-  triggerBtn_textColor: varchar("triggerBtn_textColor", { length: 7 }).default("#ffffff").notNull(), // hex color
-
-  triggerBtn_text: varchar("triggerBtn_text", { length: 255 }).default("Feedback"),
-  triggerBtn_icon: varchar("triggerBtn_icon", { length: 255 }).default("message-square"),
-  triggerBtn_size: triggerBtnSizeEnum("triggerBtn_size").default('default').notNull(),
-
+  triggerBtn: jsonb("triggerBtn").$type<TriggerBtn>().notNull().default(defaultConfig.triggerBtn),
   showFeedback: boolean("showFeedback").default(true).notNull(),
   showChangeLog: boolean("showChangeLog").default(false).notNull(),
   showRoadmap: boolean("showRoadmap").default(false).notNull(),

@@ -211,6 +211,13 @@
       "when": 1773740401584,
       "tag": "0029_medical_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1773752369394,
+      "tag": "0030_tidy_multiple_man",
+      "breakpoints": true
     }
   ]
 }
