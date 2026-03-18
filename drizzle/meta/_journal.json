@@ -218,6 +218,13 @@
       "when": 1773752369394,
       "tag": "0030_tidy_multiple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1773761684247,
+      "tag": "0031_icy_wendigo",
+      "breakpoints": true
     }
   ]
 }

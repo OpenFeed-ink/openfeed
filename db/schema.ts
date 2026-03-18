@@ -230,7 +230,7 @@ export const widgetConfig = pgTable("widget_config", {
   showFeedback: boolean("showFeedback").default(true).notNull(),
   showChangeLog: boolean("showChangeLog").default(false).notNull(),
   showRoadmap: boolean("showRoadmap").default(false).notNull(),
-  announcement:jsonb("announcement").$type<AnnouncementConfig | null>().default(null),
+  announcement: jsonb("announcement").$type<AnnouncementConfig | null>().default(null),
 }, (t) => [index("project_widgetConfig_idx").on(t.projectId)])
 
 export const changelogCategoryEnum = pgEnum("changelog_category", [
@@ -252,6 +252,14 @@ export const changelogs = pgTable("changelogs", {
   category: changelogCategoryEnum("category").default("new_feature").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const widgetDailyStats = pgTable("widget_daily_stats", {
+  projectId: text("project_id").notNull(),
+  date: timestamp("date").notNull(),
+  opens: integer("opens").default(0).notNull(),
+}, (t) => ([
+  primaryKey({ columns: [t.projectId, t.date] }),
+]))
 
 export const changelogsRelations = relations(changelogs, ({ one }) => ({
   user: one(user, {
@@ -357,8 +365,17 @@ export const projectRelations = relations(project, ({ many }) => ({
   usersProjects: many(usersProjects),
   features: many(feature),
   tags: many(tag),
-  changelog: many(changelogs)
+  changelog: many(changelogs),
+  widgetDailyStats: many(widgetDailyStats)
 }));
+
+export const widgetDailyStatsRelations = relations(widgetDailyStats, ({ one }) => ({
+  project: one(project, {
+    fields: [widgetDailyStats.projectId],
+    references: [project.id]
+  })
+}));
+
 
 export const sessionRelations = relations(session, ({ one }) => ({
   user: one(user, {

@@ -85,6 +85,16 @@ export type Feature = {
   createdAt: Date
 };
 
+export type TimeRange = 'today' | 'week' | 'month' | 'year' | 'all'
+
+export const timeRangeOptions = [
+  { value: 'today', label: 'Today' },
+  { value: 'week', label: 'Last 7 days' },
+  { value: 'month', label: 'Last 30 days' },
+  { value: 'year', label: 'Last 12 months' },
+  { value: 'all', label: 'All time' },
+] as const
+
 export const statusLabels: Record<typeof feature.$inferSelect["status"], string> = {
   under_review: "Under Review",
   planned: "Planned",

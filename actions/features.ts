@@ -47,6 +47,8 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
       status: status,
     }
 
+
+
     if (isAnonymous === 'TRUE') {
       newFeature.visitorToken = userId
     } else {

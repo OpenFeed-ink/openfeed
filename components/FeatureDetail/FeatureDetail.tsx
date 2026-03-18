@@ -99,6 +99,8 @@ export async function FeatureDetail({ featureId, user, memberships }: {
                 projectId={featureData.projectId}
                 feature={featureData}
                 availableTags={[]}
+                userId={user.id}
+                userName={user.name}
               />
             )}
             {(permit.deleteAnyFeature || featureData.authorId === user.id) && (

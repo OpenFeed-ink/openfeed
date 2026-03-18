@@ -159,7 +159,7 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
             Manage and respond to user feedback
           </p>
         </div>
-        {permit.addNewFeature && <UpsertFeature projectId={id} availableTags={projectData.tags} />}
+        {permit.addNewFeature && <UpsertFeature userName={session.user.name} userId={session.user.id} projectId={id} availableTags={projectData.tags} />}
       </div>
 
       {/* Filters */}

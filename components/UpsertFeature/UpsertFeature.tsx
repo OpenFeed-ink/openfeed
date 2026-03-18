@@ -48,9 +48,11 @@ interface UpsertFeatureProps {
   projectId: string;
   feature?: QFeature;
   availableTags: Tag[];
+  userId: string
+  userName: string
 }
 
-export function UpsertFeature({ projectId, feature, availableTags }: UpsertFeatureProps) {
+export function UpsertFeature({ projectId, feature, availableTags, userId, userName }: UpsertFeatureProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitPending, startSubmitTransition] = useTransition();
@@ -102,6 +104,9 @@ export function UpsertFeature({ projectId, feature, availableTags }: UpsertFeatu
     const form = new FormData();
     form.set("title", featureForm.title);
     form.set("description", featureForm.description);
+    form.set("isAnonymous", "FALSE")
+    form.set("userId", userId)
+    form.set("userName", userName)
     form.set("status", featureForm.status);
     featureForm.selectedTags.forEach((tag) => form.append("tagIds", tag.id));
     form.set("projectId", projectId);
@@ -134,7 +139,7 @@ export function UpsertFeature({ projectId, feature, availableTags }: UpsertFeatu
       open={open}
       onOpenChange={(value) => {
         setOpen(value);
-       resetForm();
+        resetForm();
       }}
     >
       <DialogTrigger asChild>
