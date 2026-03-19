@@ -11,7 +11,9 @@ export function useRange(paramName: string, defaultValue: TimeRange = 'month') {
   const setRange = (newRange: TimeRange) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set(paramName, newRange)
-    router.push(`?${params.toString()}`)
+    router.push(`?${params.toString()}`, {
+      scroll: false
+    })
   }
 
   return { range, setRange }

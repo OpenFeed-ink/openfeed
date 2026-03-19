@@ -2,11 +2,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, MouseHandlerDataParam } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { RangeSelector } from './RangeSelector'
 import { useRange } from '@/hooks/useRange'
 import { useRouter } from 'next/navigation'
 import { TimeRange } from '@/type'
+import { CategoricalChartState } from 'recharts/types/chart/types'
 
 export function TopFeaturesChart({ projectId, initialRange, data }: {
   projectId: string,
@@ -20,7 +21,7 @@ export function TopFeaturesChart({ projectId, initialRange, data }: {
   const router = useRouter()
   const { range, setRange } = useRange('topFeaturesRange', initialRange)
 
-  const handleBarClick = (payload: MouseHandlerDataParam) => {
+  const handleBarClick = (payload:CategoricalChartState) => {
     const featureindex = payload.activeIndex
     const index = Number(featureindex)
     if (index || index === 0) {
@@ -39,14 +40,12 @@ export function TopFeaturesChart({ projectId, initialRange, data }: {
         <RangeSelector value={range} onChange={setRange} />
       </CardHeader>
       <CardContent>
-        <div className="h-80 min-w-0">
+        <div className="min-h-80 h-80 min-w-0">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}
               layout="vertical"
               onClick={handleBarClick}
-              width={"100%"}
-              height={"100%"}
             >
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" />

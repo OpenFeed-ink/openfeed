@@ -27,6 +27,11 @@ export function AppSidebar({ userProject, allProjects, user }: {
   const data = {
     navMain: [
       {
+        title: "Dashboard",
+        url: `/projects/${project.id}`,
+        icon: <Brain />
+      },
+      {
         title: "Feature Requests",
         url: `/projects/${project.id}/feature-requests`,
         icon: (
@@ -73,14 +78,7 @@ export function AppSidebar({ userProject, allProjects, user }: {
         icon: (
           <Users />
         ),
-      },
-      {
-        title: "AI Config",
-        url: `/projects/${project.id}/ai`,
-        icon: (
-          <Brain />
-        ),
-      },
+      }
     ],
   }
 

@@ -225,6 +225,13 @@
       "when": 1773761684247,
       "tag": "0031_icy_wendigo",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1773921732525,
+      "tag": "0032_dashing_rafael_vega",
+      "breakpoints": true
     }
   ]
 }

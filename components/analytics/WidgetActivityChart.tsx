@@ -26,12 +26,10 @@ export function WidgetActivityChart({ initialRange, data }: {
         <RangeSelector value={range} onChange={setRange} />
       </CardHeader>
       <CardContent>
-        <div className="h-80 min-w-0">
+        <div className="min-h-80 h-80 min-w-0">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={data}
-              width={"100%"}
-              height={"100%"}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" tick={{ fontSize: 12 }} />
