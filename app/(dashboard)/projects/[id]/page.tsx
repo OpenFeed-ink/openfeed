@@ -10,7 +10,7 @@ import { getDateRange, getOverview } from "@/lib/analytics"
 import { OverviewCards } from "@/components/analytics/OverviewCards"
 import { TopFeaturesChart } from "@/components/analytics/TopFeaturesChart"
 import { WidgetActivityChart } from "@/components/analytics/WidgetActivityChart"
-import { AIAssistant } from "@/components/analytics/AIAssistant"
+import { ProductAdvisor } from "@/components/ProductAdvisor/ProductAdvisor"
 
 
 export default async function AnalyticsPage({ params, searchParams }: {
@@ -67,7 +67,10 @@ export default async function AnalyticsPage({ params, searchParams }: {
       <h1 className="text-2xl font-bold mb-6">Analytics & Insights</h1>
       <div className="space-y-8">
         <OverviewCards initialRange={overviewRange} data={overviewData} />
-        <AIAssistant projectId={id} />
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold mb-4">Product Advisor</h2>
+          <ProductAdvisor projectId={id} />
+        </div>
         <TopFeaturesChart projectId={id} initialRange={topFeaturesRange} data={projectData.features} />
         <WidgetActivityChart initialRange={widgetRange} data={projectData.widgetDailyStats} />
       </div>

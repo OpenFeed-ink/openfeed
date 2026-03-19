@@ -21,7 +21,7 @@ import {
 import { categoryConfig } from '@/type'
 import { RichTextEditor } from '../TiptapInput/TiptapInput'
 import { Button } from '@/components/ui/button'
-import { Loader2, Plus } from 'lucide-react'
+import { Loader2, Plus, Bot } from 'lucide-react'
 import { useState, useTransition } from 'react';
 import { upsertChangeLogAction } from '@/actions/changelog';
 import { EMPTY_FORM_STATE } from '@/lib/zodErrorHandle';
@@ -89,6 +89,10 @@ export const UpsertChangelog = ({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          <Button size="lg" className="cursor-pointer hover:bg-emerald-700">
+            <Bot className="mr-2 h-4 w-4" />
+            AI Writer
+          </Button>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="space-y-2 flex-1">
               <Label htmlFor="title">Title</Label>
@@ -134,13 +138,14 @@ export const UpsertChangelog = ({
           </div>
         </div>
         <DialogFooter>
+
           <DialogClose asChild>
             <Button disabled={pending} variant="outline">
               Cancel
             </Button>
           </DialogClose>
           <Button
-            className="bg-teal-600 hover:bg-teal-700"
+            className="hover:bg-emerald-700"
             onClick={handleSubmit}
           >
             {pending ? (
@@ -154,6 +159,7 @@ export const UpsertChangelog = ({
               'Create'
             )}
           </Button>
+
         </DialogFooter>
       </DialogContent>
     </Dialog>

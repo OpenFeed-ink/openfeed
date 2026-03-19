@@ -1,7 +1,7 @@
 import { defaultConfig } from "@/lib/utils";
 import { AnnouncementConfig, TriggerBtn } from "@/type";
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index, pgEnum, varchar, uuid, real, uniqueIndex, integer, primaryKey, unique, AnyPgColumn, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, index, pgEnum, varchar, uuid, uniqueIndex, integer, primaryKey, unique, AnyPgColumn, jsonb } from "drizzle-orm/pg-core";
 export const planEnum = pgEnum('plan', ["FREE", 'BASIC', 'PRO', 'BUSINESS', 'ENTERPRISE', 'OS']);
 
 export const user = pgTable("user", {
@@ -148,9 +148,6 @@ export const feature = pgTable("feature", {
 
   pinnedComment: uuid("pinned_comment")
     .references((): AnyPgColumn => comment.id, { onDelete: "set null" }),
-
-  aiSummary: text("ai_summary"),
-  priorityScore: real("priority_score"),
 
   createdAt: timestamp("created_at", {withTimezone:true}).defaultNow().notNull(),
 }, (t) => [index("project_feature_idx").on(t.projectId)])
