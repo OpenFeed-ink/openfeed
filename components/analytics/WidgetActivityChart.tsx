@@ -26,7 +26,7 @@ export function WidgetActivityChart({ initialRange, data }: {
         <RangeSelector value={range} onChange={setRange} />
       </CardHeader>
       <CardContent>
-        <div className="h-80">
+        <div className="h-80 min-w-0">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={data}

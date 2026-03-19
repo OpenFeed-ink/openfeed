@@ -93,7 +93,7 @@ export default async function WidgetPreviewPage({
               `,
         }}
       />
-      <script async src="/packages/widget.iife.js" data-project-id={config.projectId} data-api-url={process.env.BETTER_AUTH_URL || "http://localhost:3000"}></script>
+      <script async src="/packages/widget.iife.js" data-prod="false" data-project-id={config.projectId} data-api-url={process.env.BETTER_AUTH_URL || "http://localhost:3000"}></script>
     </>
   )
 }
