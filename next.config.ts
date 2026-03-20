@@ -1,7 +1,23 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  poweredByHeader: false,
+  compress: true,
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "@tiptap/react",
+      "@tiptap/starter-kit",
+      "@tiptap/extension-link",
+      "@tiptap/extension-image",
+      "@tiptap/extension-placeholder",
+      "@tiptap/extension-highlight",
+      "@tiptap/extension-underline",
+      "@tiptap/extension-text-align",
+      "react-icons",
+      "recharts",
+    ],
+  },
   async headers() {
     return [
       {

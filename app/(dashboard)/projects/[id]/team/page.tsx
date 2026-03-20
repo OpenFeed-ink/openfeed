@@ -1,19 +1,17 @@
 import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { databaseDrizzle } from "@/db";
 import { usersProjects } from "@/db/schema";
 import { TeamMembers } from "@/components/TeamMmbers/TeamMembers";
 import { InviteForm } from "@/components/InviteForm/InviteForm";
+import { getServerSession } from "@/lib/server/session";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function TeamPage({ params }: PageProps) {
-  const { id: projectId } = await params;
-  const session = await auth.api.getSession({ headers: await headers() });
+  const [{ id: projectId }, session] = await Promise.all([params, getServerSession()]);
   if (!session?.user.id) redirect("/signin");
 
   const members = await databaseDrizzle.query.usersProjects.findMany({

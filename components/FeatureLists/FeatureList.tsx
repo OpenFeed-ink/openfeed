@@ -1,6 +1,5 @@
 "use client";
 
-import * as motion from "motion/react-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,12 +55,7 @@ export function FeatureList({ features, totalPages, currentPage, userId,pub, sel
           </Card>
         ) : (
           features.map((feature) => (
-            <motion.div
-              key={feature.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-            >
+            <div key={feature.id}>
               <Card
                 className={`cursor-pointer m-4 transition-all hover:border-teal-500/50 hover:shadow-md ${selectedFeatureId === feature.id
                   ? "border-teal-500 ring-1 ring-teal-500 m-2"
@@ -119,7 +113,7 @@ export function FeatureList({ features, totalPages, currentPage, userId,pub, sel
                   </div>
                 </CardFooter>
               </Card>
-            </motion.div>
+            </div>
           ))
         )}
       </div>

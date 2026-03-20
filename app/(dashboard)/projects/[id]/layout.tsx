@@ -6,11 +6,10 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { auth } from "@/lib/auth";
 import { redirect } from 'next/navigation'
-import { headers } from "next/headers";
 import { databaseDrizzle } from "@/db";
 import { UserProject } from "@/type";
+import { getServerSession } from "@/lib/server/session";
 
 export default async function ProjectLayout({
   children,
@@ -19,11 +18,7 @@ export default async function ProjectLayout({
   children: React.ReactNode;
   params: Promise<{ id: string }>
 }>) {
-  const {id} = await params
-
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const [{ id }, session] = await Promise.all([params, getServerSession()])
 
   if (!session?.user.id) return redirect("/signin")
 

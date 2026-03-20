@@ -1,6 +1,4 @@
 import { eq, and } from "drizzle-orm";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +6,7 @@ import Link from "next/link";
 import { databaseDrizzle } from "@/db";
 import { invitation, usersProjects } from "@/db/schema";
 import { LogoutBtn } from "@/components/LogoutBtn/LogoutBtn";
+import { getServerSession } from "@/lib/server/session";
 
 interface PageProps {
   searchParams: Promise<{ token?: string }>;
@@ -19,7 +18,7 @@ export default async function AcceptInvitePage({ searchParams }: PageProps) {
     return <InvalidInvite title="Invalid Invitation" action="home" message="No invitation token provided." />;
   }
 
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
   if (!session?.user.id) {
     return (
       <Card className="max-w-md mx-auto mt-20">

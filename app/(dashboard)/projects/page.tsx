@@ -1,10 +1,6 @@
-import { auth } from "@/lib/auth";
 import { redirect } from 'next/navigation'
-import { headers } from "next/headers";
 import { databaseDrizzle } from "@/db";
 import { Navbar } from "@/components/Navbar/Navbar";
-import * as motion from "motion/react-client"
-import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, FolderKanban } from "lucide-react";
 import {
   Card,
@@ -18,11 +14,10 @@ import { UpsertProject } from "@/components/UpsertProject/UpsertProject";
 import { DeleteProject } from "@/components/DeleteProject/DeleteProject";
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { getServerSession } from "@/lib/server/session";
 
 export default async function page() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getServerSession();
 
   if (!session?.user.id) return redirect("/signin")
   const { name, email, image } = session.user
@@ -38,51 +33,10 @@ export default async function page() {
     }
   })
 
-  if (!userProjects) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="w-full max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8"
-        data-testid="projects-loading"
-      >
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-8 w-32" />
-          <Skeleton className="h-10 w-36" />
-        </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-40 rounded-xl" />
-          ))}
-        </div>
-      </motion.div>
-    );
-  }
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 },
-  };
-
-
   return (
     <div className="w-full">
       <Navbar name={name} email={email} image={image ?? undefined} />
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="w-full max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8"
-      >
+      <div className="w-full max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -97,8 +51,7 @@ export default async function page() {
 
         {/* Empty State */}
         {userProjects.length === 0 ? (
-          <motion.div
-            variants={itemVariants}
+          <div
             className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border py-16 mt-6"
             data-testid="no-projects"
           >
@@ -110,15 +63,12 @@ export default async function page() {
               Create your first project to start collecting feedback from your users.
             </p>
             <UpsertProject title="Create Your First Project" />
-          </motion.div>
+          </div>
         ) : (
           /* Project Grid */
-          <motion.div
-            variants={containerVariants}
-            className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6"
-          >
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6">
             {userProjects.map(({ project, role }) => (
-              <motion.div key={project.id} variants={itemVariants}>
+              <div key={project.id}>
                 <Card
                   className="group relative cursor-pointer overflow-hidden transition-all duration-300 hover:border-teal-500/50 hover:shadow-lg"
                 >
@@ -158,12 +108,11 @@ export default async function page() {
                     </CardContent>
                   </Link>
                 </Card>
-
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
     </div>
   )
 }

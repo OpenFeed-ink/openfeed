@@ -1,11 +1,10 @@
 import { and, eq, ilike, inArray, or } from "drizzle-orm";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { databaseDrizzle } from "@/db";
 import { feature, featureTags, project } from "@/db/schema";
 import { RoadmapBoard } from "@/components/RoadmapBoard/RoadmapBoard";
 import { FeatureFilters } from "@/components/FeatureFilters/FeatureFilters";
+import { getServerSession } from "@/lib/server/session";
 
 
 interface PageProps {
@@ -20,24 +19,25 @@ interface PageProps {
   }>;
 }
 
+type FeatureStatus = "under_review" | "planned" | "in_progress" | "done" | "closed"
+
 export default async function RoadmapPage({ params, searchParams }: PageProps) {
-  const { id } = await params;
-  const {
+  const [{ id }, {
     status = "all",
     sort = "most-votes",
     q = "",
     tags = "",
-  } = await searchParams;
+  }] = await Promise.all([params, searchParams]);
   const tagIds = tags ? tags.split(",").filter(Boolean) : [];
+  const featureStatus = status === "all" ? undefined : (status as FeatureStatus)
 
-
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
   if (!session?.user.id) redirect("/signin");
 
   // Build where clause for features
   const featureWhere = and(
     eq(feature.projectId, id),
-    status !== "all" ? eq(feature.status, status as any) : undefined,
+    featureStatus ? eq(feature.status, featureStatus) : undefined,
     q
       ? or(
         ilike(feature.title, `%${q}%`),

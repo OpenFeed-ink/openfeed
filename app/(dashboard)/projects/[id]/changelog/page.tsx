@@ -1,44 +1,41 @@
 import { ChangelogList } from "@/components/ChangelogList/ChangelogList"
 import { UpsertChangelog } from "@/components/UpsertChangelog/UpsertChangelog"
 import { databaseDrizzle } from "@/db"
-import { auth } from "@/lib/auth"
 import { permission } from "@/lib/utils"
-import { headers } from "next/headers";
 import { redirect } from 'next/navigation'
+import { getServerSession } from "@/lib/server/session"
 
 
 export default async function page({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const session = await auth.api.getSession({ headers: await headers() });
+  const [{ id }, session] = await Promise.all([params, getServerSession()])
   if (!session?.user.id) return redirect("/signin");
 
-  const logs = await databaseDrizzle.query.changelogs.findMany({
-    where: (c, ops) => ops.eq(c.projectId, id),
-    with: {
-      user: {
-        columns: {
-          id: true,
-          name: true,
-          image: true,
-        },
-        with: {
-          usersProjects: {
-            where: (p, ops) => ops.eq(p.projectId, id),
-            columns: {
-              role: true,
+  const [logs, memberships] = await Promise.all([
+    databaseDrizzle.query.changelogs.findMany({
+      where: (c, ops) => ops.eq(c.projectId, id),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            name: true,
+            image: true,
+          },
+          with: {
+            usersProjects: {
+              where: (p, ops) => ops.eq(p.projectId, id),
+              columns: {
+                role: true,
+              }
             }
           }
         }
       }
-    }
-  })
-
-
-  // Get memberships for role checking
-  const memberships = await databaseDrizzle.query.usersProjects.findMany({
-    where: (c, ops) => ops.eq(c.projectId, id),
-    columns: { userId: true, role: true },
-  });
+    }),
+    databaseDrizzle.query.usersProjects.findMany({
+      where: (c, ops) => ops.eq(c.projectId, id),
+      columns: { userId: true, role: true },
+    })
+  ])
 
   const permit = permission(memberships, session.user.id)
 

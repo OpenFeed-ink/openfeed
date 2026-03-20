@@ -150,7 +150,11 @@ export const feature = pgTable("feature", {
     .references((): AnyPgColumn => comment.id, { onDelete: "set null" }),
 
   createdAt: timestamp("created_at", {withTimezone:true}).defaultNow().notNull(),
-}, (t) => [index("project_feature_idx").on(t.projectId)])
+}, (t) => [
+  index("project_feature_idx").on(t.projectId),
+  index("feature_project_status_created_idx").on(t.projectId, t.status, t.createdAt),
+  index("feature_project_upvotes_idx").on(t.projectId, t.upvotesCount),
+])
 
 export const upvote = pgTable(
   "upvotes",
@@ -248,7 +252,9 @@ export const changelogs = pgTable("changelogs", {
   content: text("content").notNull(), // HTML from Tiptap
   category: changelogCategoryEnum("category").default("new_feature").notNull(),
   createdAt: timestamp("created_at", {withTimezone:true}).defaultNow().notNull(),
-});
+}, (t) => [
+  index("changelogs_project_created_idx").on(t.projectId, t.createdAt),
+]);
 
 export const widgetDailyStats = pgTable("widget_daily_stats", {
   projectId: text("project_id").notNull(),
@@ -286,6 +292,7 @@ export const featureTags = pgTable("feature_tags", {
     .references(() => tag.id, { onDelete: "cascade" }),
 }, (t) => [
   primaryKey({ columns: [t.featureId, t.tagId] }),
+  index("feature_tags_tag_idx").on(t.tagId),
 ]);
 
 export const featureTagsRelations = relations(featureTags, ({ one }) => ({
