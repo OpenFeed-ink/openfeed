@@ -54,6 +54,19 @@ export default async function page({ params, searchParams }: { params: Promise<{
     },
     orderBy: (f, { asc }) => [asc(f.createdAt)],
   });
+  const featuresByStatus = features.reduce<Record<FeatureStatus, typeof features>>(
+    (acc, current) => {
+      acc[current.status].push(current);
+      return acc;
+    },
+    {
+      under_review: [],
+      planned: [],
+      in_progress: [],
+      done: [],
+      closed: [],
+    }
+  );
 
   return (
     <ThemeController theme={theme}>
@@ -65,11 +78,11 @@ export default async function page({ params, searchParams }: { params: Promise<{
                 {status.label}
               </h3>
               <span className="text-xs text-muted-foreground">
-                {features.length}
+                {featuresByStatus[status.value as FeatureStatus].length}
               </span>
             </div>
             <div className="space-y-2">
-              {features.map((feature) => feature.status === status.value && (
+              {featuresByStatus[status.value as FeatureStatus].map((feature) => (
                 <Card key={feature.id} className="hover:border-teal-500/40 hover:shadow-sm transition">
                   <FeatureHeaderCard featureId={feature.id}>
                     <div className="flex justify-between">
@@ -127,7 +140,7 @@ export default async function page({ params, searchParams }: { params: Promise<{
                 </Card>
               ))}
 
-              {features.length === 0 && (
+              {featuresByStatus[status.value as FeatureStatus].length === 0 && (
                 <div className="text-xs text-muted-foreground text-center py-6">
                   None
                 </div>

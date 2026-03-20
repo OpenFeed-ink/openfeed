@@ -1,4 +1,3 @@
-import * as motion from "motion/react-client";
 import { Logo } from "@/components/Logo";
 import { UserMenu } from "../userMenu/UserMenu";
 import { Button } from "@/components/ui/button";
@@ -18,12 +17,7 @@ export function Navbar(user: { name: string, email: string, image?: string }) {
     .toUpperCase();
 
   return (
-    <motion.nav
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md"
-    >
+    <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo and primary navigation */}
         <div className="flex items-center gap-8">
@@ -42,6 +36,6 @@ export function Navbar(user: { name: string, email: string, image?: string }) {
           </Button>
         </UserMenu>
       </div>
-    </motion.nav>
+    </nav>
   );
 }

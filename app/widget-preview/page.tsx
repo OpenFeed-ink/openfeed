@@ -1,4 +1,6 @@
 
+import Script from "next/script"
+
 export default async function WidgetPreviewPage({
   searchParams,
 }: {
@@ -6,7 +8,15 @@ export default async function WidgetPreviewPage({
 }) {
   const param = await searchParams
 
-  const config = param.config ? JSON.parse(decodeURIComponent(param.config)) : null
+  let config: { projectId?: string } | null = null
+
+  if (param.config) {
+    try {
+      config = JSON.parse(decodeURIComponent(param.config))
+    } catch {
+      config = null
+    }
+  }
 
   return (
     <>
@@ -86,14 +96,20 @@ export default async function WidgetPreviewPage({
           </div>
         </footer>
       </div>
-      <script
+      <Script
+        id="openfeed-preview-config"
+        strategy="beforeInteractive"
         dangerouslySetInnerHTML={{
-          __html: `
-                window.__OPENFEED_PREVIEW_CONFIG = ${JSON.stringify(config)};
-              `,
+          __html: `window.__OPENFEED_PREVIEW_CONFIG = ${JSON.stringify(config)};`,
         }}
       />
-      <script async src="/packages/widget.iife.js" data-prod="false" data-project-id={config.projectId} data-api-url={process.env.BETTER_AUTH_URL || "http://localhost:3000"}></script>
+      <Script
+        strategy="afterInteractive"
+        src="/packages/widget.iife.js"
+        data-prod="false"
+        data-project-id={config?.projectId}
+        data-api-url={process.env.BETTER_AUTH_URL || "http://localhost:3000"}
+      />
     </>
   )
 }

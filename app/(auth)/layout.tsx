@@ -1,7 +1,6 @@
 import { MarketingInfo } from "@/components/marketing-info";
-import { auth } from "@/lib/auth";
 import { redirect } from 'next/navigation'
-import { headers } from "next/headers";
+import { getServerSession } from "@/lib/server/session";
 
 
 
@@ -10,9 +9,7 @@ export default async function AuthLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getServerSession();
 
   if (session) redirect("/");
 
