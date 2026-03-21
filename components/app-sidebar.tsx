@@ -11,17 +11,14 @@ import {
 import { LifeBuoyIcon, Lightbulb, Map, FileText, Users, Brain, Palette } from "lucide-react"
 import { ProjectSwitcher } from "./project-switcher"
 import { UserProject } from "@/type"
+import { User } from "better-auth"
 
 
 
 export function AppSidebar({ userProject, allProjects, user }: {
   userProject: UserProject,
   allProjects: UserProject[],
-  user: {
-    name: string;
-    email: string;
-    avatar?: string;
-  }
+  user: User,
 }) {
   const { project } = userProject
   const data = {
@@ -86,7 +83,6 @@ export function AppSidebar({ userProject, allProjects, user }: {
     <Sidebar variant="inset">
       <SidebarHeader>
         <ProjectSwitcher projects={allProjects} selectedUserProject={userProject} />
-
         <span className="text-center text-xs text-primary capitalize">
           {userProject.role.toLowerCase()}
         </span>

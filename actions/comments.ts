@@ -17,12 +17,15 @@ const CommentData = z.object({
   parentId: z.string().nullable(),
   userId: z.string().nullable(),
   name: z.string().nullable(),
-  isAnonymous: z.enum(["FALSE", "TRUE"])
 })
 
 export async function upsertCommentAction(_: FormState, formData: FormData) {
   try {
-    const { id, projectId, featureId, content, parentId, userId, name, isAnonymous } = CommentData.parse({
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    const { id, projectId, featureId, content, parentId, userId, name } = CommentData.parse({
       id: formData.get("id"),
       projectId: formData.get("projectId"),
       featureId: formData.get("featureId"),
@@ -30,7 +33,6 @@ export async function upsertCommentAction(_: FormState, formData: FormData) {
       parentId: formData.get("parentId"),
       userId: formData.get("userId"),
       name: formData.get("name"),
-      isAnonymous: formData.get("isAnonymous")
     })
 
 
@@ -42,10 +44,11 @@ export async function upsertCommentAction(_: FormState, formData: FormData) {
       parentId: parentId
     }
 
-    if (isAnonymous === 'TRUE') {
-      newComment.visitorToken = userId
-    } else {
+
+    if (session?.user.id) {
       newComment.authorId = userId
+    } else {
+      newComment.visitorToken = userId
     }
 
     await databaseDrizzle

@@ -1,5 +1,6 @@
 import { feature, tag } from "@/db/schema";
 import { Bug, Sparkles, Zap } from "lucide-react";
+export type Plan = "FREE" | "STARTER" | "GROWTH" | "SCALE" | "OS" | "FREE TRIAL";
 
 export type UserProject = {
   role: "ADMIN" | "MEMBER";
@@ -33,13 +34,17 @@ export type CommentNode = {
   authorName: string | null
   authorId: string | null
   visitorToken: string | null
-  author: Author | null
+  author: {
+    id: string
+    name: string
+    image: string | null
+    usersProjects: Membership[]
+  } | null
   parentId: string | null
   replies: CommentNode[]
 }
 
 export type Membership = {
-  userId: string
   role: "ADMIN" | "MEMBER"
 }
 
@@ -54,13 +59,13 @@ export type AnnouncementConfig = {
 }
 
 export type TriggerBtn = {
-    position: "float-bottom-right" | "float-bottom-left" | "float-up-right" | "float-up-left" | "drawer-left" | "drawer-right";
-    color: string;
-    textColor: string;
-    size: "default" | "xs" | "sm" | "lg" | "icon" | "icon-xs" | "icon-sm" | "icon-lg";
-    text: string | null;
-    icon: string | null;
- 
+  position: "float-bottom-right" | "float-bottom-left" | "float-up-right" | "float-up-left" | "drawer-left" | "drawer-right";
+  color: string;
+  textColor: string;
+  size: "default" | "xs" | "sm" | "lg" | "icon" | "icon-xs" | "icon-sm" | "icon-lg";
+  text: string | null;
+  icon: string | null;
+
 }
 
 export type Config = {

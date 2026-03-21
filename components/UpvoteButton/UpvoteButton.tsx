@@ -13,6 +13,8 @@ interface UpvoteButtonProps {
   featureId: string;
   projectId: string;
   voterToken: string;
+  initialCount: number;
+  initialVoted: boolean;
   size?: "sm" | "default";
 }
 
@@ -21,9 +23,14 @@ export function UpvoteButton({
   projectId,
   voterToken,
   size = "default",
+  initialVoted,
+  initialCount
 }: UpvoteButtonProps) {
   const { votes, toggleVote } = useUpvote();
-  const vote = votes[featureId];
+  const vote = votes[featureId] ?? {
+    voted: initialVoted,
+    count: initialCount,
+  };
 
   const [state, formAction] = useActionState(
     upvotesAction,
@@ -48,8 +55,7 @@ export function UpvoteButton({
     });
   }
 
-  const sizeClasses = size === "sm" ? "h-7 px-2 text-xs" : "h-16 px-3";
-
+  const sizeClasses = size === "sm" ? "h-7 px-2 text-xs" : "h-[70px] px-3";
   return (
     <Button
       variant="outline"

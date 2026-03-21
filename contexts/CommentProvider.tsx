@@ -16,8 +16,6 @@ type Feature = {
 type CommentContextType = {
   feature: Feature;
   user: Author;
-  memberships: { userId: string; role: "ADMIN" | "MEMBER" }[];
-
   replyingTo: string | null;
   setReplyingTo: (id: string | null) => void;
 
@@ -31,12 +29,10 @@ const CommentContext = createContext<CommentContextType | null>(null);
 export function CommentProvider({
   feature,
   user,
-  memberships,
   children,
 }: {
   feature: Feature;
   user: Author;
-  memberships: { userId: string; role: "ADMIN" | "MEMBER" }[];
   children: React.ReactNode;
 }) {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -62,7 +58,6 @@ export function CommentProvider({
       value={{
         feature,
         user,
-        memberships,
         replyingTo,
         setReplyingTo,
         pinComment,

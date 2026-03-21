@@ -13,13 +13,25 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { useProjectPermission } from "@/contexts/ProjectPermissionProvider";
 import { EMPTY_FORM_STATE } from "@/lib/zodErrorHandle";
 import { RotateCcwIcon, Trash2 } from "lucide-react";
 import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
-export const DeleteFeature = ({ id, projectId }: { id: string, projectId:string }) => {
+export const DeleteFeature = ({ id, projectId, authorId, userId }: { id: string, projectId: string, authorId: string| null, userId: string }) => {
+  const permit = useProjectPermission();
+
+  const isOwner = authorId === userId && authorId !== null;
+
+  if (!isOwner && !permit.deleteAnyFeature) return null;
+
+  return (
+    <DeleteFeatureDailog id={id} projectId={projectId} />
+  );
+}
+const DeleteFeatureDailog = ({ id, projectId }: { id: string, projectId: string }) => {
   const [state, formAction] = useActionState(deleteFeatureAction, EMPTY_FORM_STATE);
 
   useEffect(() => {

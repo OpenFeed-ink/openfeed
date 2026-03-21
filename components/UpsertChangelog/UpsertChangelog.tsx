@@ -21,24 +21,44 @@ import {
 import { categoryConfig } from '@/type'
 import { RichTextEditor } from '../TiptapInput/TiptapInput'
 import { Button } from '@/components/ui/button'
-import { Loader2, Plus, Bot } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
 import { useState, useTransition } from 'react';
 import { upsertChangeLogAction } from '@/actions/changelog';
 import { EMPTY_FORM_STATE } from '@/lib/zodErrorHandle';
 import { toast } from 'sonner';
 import { ChangelogEntry } from '../ChangelogList/ChangelogList';
+import { useProjectPermission } from '@/contexts/ProjectPermissionProvider';
 
-export const UpsertChangelog = ({
+type UpsertChangelogProps = {
+  editingEntry?: ChangelogEntry,
+  projectId: string,
+  openEditChangelog?: boolean,
+  userId: string,
+  setOpenEditChangelogAction?: (open: boolean) => void,
+}
+export function UpsertChangelog(props: UpsertChangelogProps) {
+  const permit = useProjectPermission();
+
+  const isOwner = props.editingEntry?.user?.id === props.userId;
+
+  const canEdit = props.editingEntry && (isOwner || permit.editChangelog);
+  const canCreate = !props.editingEntry && permit.addNewChangelog;
+
+  if (!canEdit && !canCreate) return null;
+
+  return (
+    <UpsertChangelogDialog
+      {...props}
+    />
+  );
+}
+
+export const UpsertChangelogDialog = ({
   editingEntry,
   projectId,
   openEditChangelog,
   setOpenEditChangelogAction,
-}: {
-  editingEntry?: ChangelogEntry,
-  projectId: string,
-  openEditChangelog?: boolean,
-  setOpenEditChangelogAction?: (open: boolean) => void,
-}) => {
+}: UpsertChangelogProps) => {
   const [pending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
   const [entry, setEntry] = useState({
@@ -63,16 +83,31 @@ export const UpsertChangelog = ({
       }
       if (resp.status === 'SUCCESS') {
         toast.success(resp.message)
-        setOpen(false)
-        setOpenEditChangelogAction?.(false)
+        setTimeout(() => {
+          setOpen(false)
+          setOpenEditChangelogAction?.(false)
+        }, 100);
         return;
       }
     })
   }
-
+  const resetForm = () => {
+    setEntry({
+      title: editingEntry?.title ?? "",
+      content: editingEntry?.content ?? "",
+      category: editingEntry?.category ?? "new_feature",
+    });
+  };
 
   return (
-    <Dialog open={open || openEditChangelog} onOpenChange={(v) => { setOpen(v); setOpenEditChangelogAction?.(v) }}>
+    <Dialog open={open || (openEditChangelog !== undefined && openEditChangelog)}
+      onOpenChange={(v) => {
+        if (!v) {
+          resetForm()
+        }
+        setOpen(v)
+        setOpenEditChangelogAction?.(v)
+      }}>
       {!editingEntry && (
         <DialogTrigger asChild>
           <Button size="lg" className="cursor-pointer hover:bg-emerald-700">
@@ -89,10 +124,6 @@ export const UpsertChangelog = ({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <Button size="lg" className="cursor-pointer hover:bg-emerald-700">
-            <Bot className="mr-2 h-4 w-4" />
-            AI Writer
-          </Button>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="space-y-2 flex-1">
               <Label htmlFor="title">Title</Label>

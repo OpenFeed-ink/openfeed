@@ -1,0 +1,49 @@
+import { Role, Permission } from "./types";
+
+export const PERMISSIONS: Record<Role, Permission> = {
+  ADMIN: {
+    role: 'admin',
+    billing: true,
+    deleteProject: true,
+    editFeature: true,
+    addNewFeature: true,
+    deleteAnyFeature: true,
+    generateAiSummary: true,
+    addComment: true,
+    deleteComment: true,
+    canPin: true,
+    deleteChangelog: true,
+    addNewChangelog: true,
+    editChangelog: true
+  },
+  MEMBER: {
+    role: 'member',
+    billing: false,
+    deleteProject: false,
+    editFeature: false,
+    addNewFeature: true,
+    deleteAnyFeature: true,
+    generateAiSummary: true,
+    addComment: true,
+    deleteComment: true,
+    canPin: true,
+    editChangelog: true,
+    deleteChangelog: false,
+    addNewChangelog: true
+  },
+  ANONYMOUS: {
+    role: 'anonymous',
+    billing: false,
+    deleteProject: false,
+    editFeature: false,
+    addNewFeature: true,
+    deleteAnyFeature: false,
+    generateAiSummary: false,
+    addComment: true,
+    deleteComment: false,
+    canPin: false,
+    addNewChangelog: false,
+    editChangelog: false,
+    deleteChangelog: false,
+  },
+};

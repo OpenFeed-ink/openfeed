@@ -10,6 +10,8 @@ import { redirect } from 'next/navigation'
 import { databaseDrizzle } from "@/db";
 import { UserProject } from "@/type";
 import { getServerSession } from "@/lib/server/session";
+import { getProjectPermission } from "@/lib/permission/getProjectPermission";
+import { ProjectPermissionProvider } from "@/contexts/ProjectPermissionProvider";
 
 export default async function ProjectLayout({
   children,
@@ -22,16 +24,17 @@ export default async function ProjectLayout({
 
   if (!session?.user.id) return redirect("/signin")
 
-  const userProjects:UserProject[] = await databaseDrizzle.query.usersProjects.findMany({
+  const userProjects: UserProject[] = await databaseDrizzle.query.usersProjects.findMany({
     where: (up, ops) => ops.eq(up.userId, session.user.id),
-    columns:{
-      role:true,
+    columns: {
+      role: true,
     },
-    with:{
-      project:true
+    with: {
+      project: true
     }
   })
 
+  const { permissions } = await getProjectPermission(session.user.id, id)
 
   const selectedProject = userProjects.find(p => p.project.id === id)
 
@@ -40,7 +43,11 @@ export default async function ProjectLayout({
 
   return (
     <SidebarProvider>
-     <AppSidebar user={session.user} userProject={selectedProject} allProjects={userProjects} />
+      <AppSidebar
+        user={session.user}
+        userProject={selectedProject}
+        allProjects={userProjects}
+      />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">
@@ -53,7 +60,9 @@ export default async function ProjectLayout({
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          {children}
+          <ProjectPermissionProvider value={permissions}>
+            {children}
+          </ProjectPermissionProvider>
         </div>
       </SidebarInset>
     </SidebarProvider>

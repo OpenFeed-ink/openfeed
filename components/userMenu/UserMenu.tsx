@@ -1,3 +1,4 @@
+"use client"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,10 +11,10 @@ import {
 import { LogOutDropdownMenuItem, ModeToggleDropdownMenuItem } from "../DropdownMenuItems/DropdownMenuItems";
 import { BadgeCheckIcon, BellIcon, CreditCardIcon, SparklesIcon } from "lucide-react";
 import { ReactNode } from "react";
+import { User } from "better-auth";
+import { UserPlan } from "../UserPlan/UserPlan";
 
-export const UserMenu = ({ user, isSidebarMobile, children }: { isSidebarMobile?: boolean, user: { name: string, email: string, image?: string }, children: ReactNode }) => {
-
-
+export const UserMenu = ({ user, isSidebarMobile, children }: { isSidebarMobile?: boolean, user: User, children: ReactNode }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -21,10 +22,7 @@ export const UserMenu = ({ user, isSidebarMobile, children }: { isSidebarMobile?
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" side={isSidebarMobile === undefined ? undefined : isSidebarMobile ? "bottom" : "right"} className="w-56">
         <DropdownMenuLabel>
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-          </div>
+          <UserPlan userName={user.name} userEmail={user.email} />
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

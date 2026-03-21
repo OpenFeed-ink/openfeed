@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare } from "lucide-react";
@@ -10,6 +9,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { QFeature } from "@/app/(dashboard)/projects/[id]/feature-requests/page";
 import { UpvoteButton } from "../UpvoteButton/UpvoteButton";
 import { statusColors, statusLabels } from "@/type";
+import { useEffect, useState, useTransition } from "react";
+import { FormatDistanceToNow } from "../FromatDistanceToNow/FormatDistanceToNow";
 
 
 interface FeatureListProps {
@@ -18,25 +19,41 @@ interface FeatureListProps {
   currentPage: number;
   selectedFeatureId?: string;
   userId: string
-  pub?:boolean
+  pub?: boolean
 }
 
 
-export function FeatureList({ features, totalPages, currentPage, userId,pub, selectedFeatureId }: FeatureListProps) {
+export function FeatureList({ features, totalPages, currentPage, userId, pub, selectedFeatureId }: FeatureListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [_, startTransition] = useTransition();
+  const [optimisticSelectedId, setOptimisticSelectedId] = useState(selectedFeatureId);
 
-  const handleSelect = (featureId: string) => {
-    if(pub) {
-      window.parent.postMessage({
-        type:  "openfeed:open-feature",
-        featureId
-      },"*")
-      return;
-    }
+
+  const getPrefetchUrl = (featureId: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("featureId", featureId);
-    router.push(`?${params.toString()}`);
+    return `?${params.toString()}`;
+  };
+
+  useEffect(() => {
+    features.forEach((f) => {
+      router.prefetch(getPrefetchUrl(f.id));
+    });
+  }, [features]);
+
+  const handleSelect = (featureId: string) => {
+    if (pub) {
+      window.parent.postMessage({
+        type: "openfeed:open-feature",
+        featureId
+      }, "*")
+      return;
+    }
+    setOptimisticSelectedId(featureId);
+    startTransition(() => {
+      router.push(getPrefetchUrl(featureId));
+    });
   };
 
   const handlePageChange = (newPage: number) => {
@@ -48,7 +65,7 @@ export function FeatureList({ features, totalPages, currentPage, userId,pub, sel
 
   return (
     <div className={"space-y-4 w-full"}>
-      <div className={!pub ? "space-y-2 max-h-[calc(100vh-80px)] overflow-y-auto pr-2": ""}>
+      <div className={!pub ? "space-y-2 max-h-[calc(100vh-80px)] overflow-y-auto pr-2" : ""}>
         {features.length === 0 ? (
           <Card className="p-8 text-center">
             <p className="text-muted-foreground">No Feature Request or Feedback found</p>
@@ -57,12 +74,12 @@ export function FeatureList({ features, totalPages, currentPage, userId,pub, sel
           features.map((feature) => (
             <div key={feature.id}>
               <Card
-                className={`cursor-pointer m-4 transition-all hover:border-teal-500/50 hover:shadow-md ${selectedFeatureId === feature.id
+                className={`cursor-pointer m-4 transition-all hover:border-teal-500/50 hover:shadow-md ${optimisticSelectedId === feature.id
                   ? "border-teal-500 ring-1 ring-teal-500 m-2"
                   : ""
                   }`}
               >
-                <CardHeader className="p-4 pb-2"  onClick={() => handleSelect(feature.id)}>
+                <CardHeader className="p-4 pb-2" onClick={() => handleSelect(feature.id)}>
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-base line-clamp-1">
                       {feature.title}
@@ -100,6 +117,8 @@ export function FeatureList({ features, totalPages, currentPage, userId,pub, sel
                         projectId={feature.projectId}
                         featureId={feature.id}
                         voterToken={userId}
+                        initialCount={feature.upvotesCount}
+                        initialVoted={feature.upvotes.length > 0}
                         size="sm"
                       />
                       <span className="flex items-center gap-1">
@@ -107,9 +126,7 @@ export function FeatureList({ features, totalPages, currentPage, userId,pub, sel
                         {feature.comments.length}
                       </span>
                     </div>
-                    <span>
-                      {formatDistanceToNow(new Date(feature.createdAt), { addSuffix: true })}
-                    </span>
+                    <FormatDistanceToNow createdAt={feature.createdAt} />
                   </div>
                 </CardFooter>
               </Card>

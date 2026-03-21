@@ -3,39 +3,45 @@ import { feature } from "@/db/schema";
 import { Separator } from "@/components/ui/separator";
 import { databaseDrizzle } from "@/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDistanceToNow } from "date-fns";
-import { Button } from "@/components/ui/button";
-import Link from "next/link"
 import { UpvoteButton } from "../UpvoteButton/UpvoteButton";
 import { UpsertFeature } from "../UpsertFeature/UpsertFeature";
-import { Sparkles } from "lucide-react";
 import { AddComments } from "../AddComments/AddComments";
 import { CommentProvider } from "@/contexts/CommentProvider";
 import { RenderComment } from "../RenderComment/RenderComment";
-import { Author, CommentNode } from "@/type"
-import { permission } from "@/lib/utils";
+import { Author, CommentNode, statusColors, statusLabels } from "@/type"
 import { DeleteFeature } from "../DeleteFeature/DeleteFeature";
-import { notFound } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { FormatDistanceToNow } from "../FromatDistanceToNow/FormatDistanceToNow";
+import { NoFeatureRequest } from "./NoFeatureRequest";
 
-
-type Membership = {
-  userId: string;
-  role: "ADMIN" | "MEMBER";
-}
-
-
-export async function FeatureDetail({ featureId, user, memberships }: {
+export async function FeatureDetail({ featureId, user }: {
   featureId: string,
   user: Author,
-  memberships: Membership[],
 }) {
-
   const featureData = await databaseDrizzle.query.feature.findFirst({
     where: eq(feature.id, featureId),
     with: {
+      author: {
+        columns: {
+          id: true,
+          name: true,
+        },
+        with: {
+          usersProjects: {
+            where: (up, ops) => ops.eq(up.projectId, feature.projectId),
+            columns: { role: true },
+          },
+        },
+      },
       comments: {
         with: {
           author: {
+            with: {
+              usersProjects: {
+                where: (up, ops) => ops.eq(up.projectId, feature.projectId),
+                columns: { role: true },
+              }
+            },
             columns: {
               id: true,
               name: true,
@@ -43,24 +49,23 @@ export async function FeatureDetail({ featureId, user, memberships }: {
             },
           },
         },
-        orderBy: (comments, { desc }) => [desc(comments.createdAt)]
+        orderBy: (comments, { desc }) => [desc(comments.createdAt)],
       },
       upvotes: {
         where: (u, ops) => ops.eq(u.voterToken, user.id),
-        columns: { id: true }
+        columns: { id: true },
       },
       tags: { with: { tag: true } },
-    }
+    },
   });
 
-  const permit = permission(memberships, user.id)
+  if (!featureData) return <NoFeatureRequest />
 
-  if (!featureData) return notFound();
   const commentsTree = buildCommentTree(featureData.comments, featureData.pinnedComment)
-
-  const authorPermit = permission(memberships, featureData.authorId)
+  const authorRole =
+    featureData.author?.usersProjects?.[0]?.role ?? "ANONYMOUS";
   return (
-    <Card className={"h-full w-full"}>
+    <Card className={"w-full"}>
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
           {/* Prominent upvote button */}
@@ -69,6 +74,8 @@ export async function FeatureDetail({ featureId, user, memberships }: {
               projectId={featureData.projectId}
               featureId={featureData.id}
               voterToken={user.id}
+              initialCount={featureData.upvotesCount}
+              initialVoted={featureData.upvotes.length > 0}
             />
           </div>
 
@@ -77,38 +84,37 @@ export async function FeatureDetail({ featureId, user, memberships }: {
             <CardTitle className="text-xl">{featureData.title}</CardTitle>
             <div className="text-sm text-muted-foreground mt-1">
               Submitted{" "}
-              {formatDistanceToNow(new Date(featureData.createdAt), { addSuffix: true })}
+              <FormatDistanceToNow createdAt={featureData.createdAt} />
+              {" "}
               {featureData.authorId ? (
-                <Button asChild variant="link" className="px-1">
-                  {permit.role !== "anonymous" ? <Link href={`/projects/${featureData.projectId}/team`}>
-                    by {featureData.authorName} ({authorPermit.role})
-                  </Link> : <p>by {featureData.authorName} ( {authorPermit.role} )</p>}
-                </Button>
+                <span className="capitalize">by {featureData.authorName} ({authorRole.toLowerCase()})</span>
               ) : featureData.authorEmail ? (
                 <span> by {featureData.authorEmail}</span>
               ) : featureData.authorName ? (
                 <span> by {featureData.authorName}</span>
               ) : null}
             </div>
+            <Badge className={statusColors[featureData.status]}>
+              {statusLabels[featureData.status]}
+            </Badge>
           </div>
 
           {/* Action buttons (edit/delete) */}
           <div className="flex items-center gap-2">
-            {(permit.editFeature || featureData.authorId === user.id) && (
-              <UpsertFeature
-                projectId={featureData.projectId}
-                feature={featureData}
-                availableTags={[]}
-                userId={user.id}
-                userName={user.name}
-              />
-            )}
-            {(permit.deleteAnyFeature || featureData.authorId === user.id) && (
-              <DeleteFeature
-                id={featureData.id}
-                projectId={featureData.projectId}
-              />
-            )}
+            <UpsertFeature
+              projectId={featureData.projectId}
+              feature={featureData}
+              availableTags={[]}
+              userId={user.id}
+              userName={user.name}
+              projectFeatureCount={0}
+            />
+            <DeleteFeature
+              id={featureData.id}
+              projectId={featureData.projectId}
+              userId={user.id}
+              authorId={featureData.authorId}
+            />
           </div>
         </div>
       </CardHeader>
@@ -125,45 +131,26 @@ export async function FeatureDetail({ featureId, user, memberships }: {
             </p>
           </div>
         )}
-
-        {/* AI Summary */}
-        {featureData.aiSummary || permit.generateAiSummary &&
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-teal-600" />
-              AI Summary
-            </h3>
-            {featureData.aiSummary ? (
-              <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-                {featureData.aiSummary}
-              </p>
-            ) : permit.generateAiSummary ? (
-              <Button
-                variant="outline"
-                size="sm"
-              >
-                {false ? (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate AI Summary
-                  </>
-                )}
-              </Button>
-            ) : <div />}
-          </div>}
-
+        <div className="flex flex-wrap gap-2 mt-1">
+          {featureData.tags.map(({ tag }) => (
+            <Badge
+              key={tag.id}
+              variant="outline"
+              className="text-xs px-1 py-0"
+              style={{ borderColor: tag.color }}
+            >
+              <div className="h-1.5 w-1.5 rounded-full mr-1" style={{ backgroundColor: tag.color }} />
+              {tag.name}
+            </Badge>
+          ))}
+        </div>
         {/* Comments */}
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
             Comments ({featureData.comments.length})
           </h3>
 
-          <div className="max-h-80 min-h-80 overflow-y-auto">
+          <div className="max-h-112.5 min-h-112.5 overflow-y-auto">
             <div className="overflow-x-auto pb-2">
               <div className="space-y-4 w-max">
                 {commentsTree.length === 0 ? (
@@ -177,7 +164,6 @@ export async function FeatureDetail({ featureId, user, memberships }: {
                       pinCommentId: featureData.pinnedComment,
                     }}
                     user={user}
-                    memberships={memberships}
                   >
                     {commentsTree.map((comment) => (
                       <RenderComment key={comment.id} userId={user.id} userName={user.name} comment={comment} />
@@ -192,7 +178,6 @@ export async function FeatureDetail({ featureId, user, memberships }: {
             projectId={featureData.projectId}
             userId={user.id}
             userName={user.name}
-            isAnonymous={permit.role ===  "anonymous"}
           />
         </div>
       </CardContent>

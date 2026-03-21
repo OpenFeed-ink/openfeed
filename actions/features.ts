@@ -20,13 +20,16 @@ const ProjectData = z.object({
   description: z.string().nullable(),
   tagIds: z.string().array(),
   status: z.enum(["under_review", "planned", "in_progress", "done", "closed"]),
-  isAnonymous: z.enum(["FALSE", "TRUE"])
 })
 
 
 export async function upsertFeaturesAction(_: FormState, formData: FormData) {
   try {
-    const { id, projectId, title, description, status, tagIds, userName, userId, isAnonymous } = ProjectData.parse({
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    const { id, projectId, title, description, status, tagIds, userName, userId } = ProjectData.parse({
       id: formData.get("id"),
       projectId: formData.get("projectId"),
       title: formData.get("title"),
@@ -35,7 +38,6 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
       tagIds: formData.getAll("tagIds"),
       userId: formData.get("userId"),
       userName: formData.get("userName"),
-      isAnonymous: formData.get("isAnonymous")
     })
 
     const newFeature: typeof feature.$inferInsert = {
@@ -47,13 +49,12 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
       status: status,
     }
 
-
-
-    if (isAnonymous === 'TRUE') {
-      newFeature.visitorToken = userId
-    } else {
+    if (session?.user.id) {
       newFeature.authorId = userId
+    } else {
+      newFeature.visitorToken = userId
     }
+
 
     await databaseDrizzle.transaction(async (tx) => {
       const featureId = await tx
@@ -62,9 +63,11 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
         .onConflictDoUpdate({ target: feature.id, set: newFeature })
         .returning({ id: feature.id })
         .then(res => res[0].id)
+     
+      if(tagIds.length === 0) return;
 
       const features = tagIds.map(tagId => ({ featureId, tagId }))
-
+    
       await tx.insert(featureTags)
         .values(features)
         .onConflictDoNothing()

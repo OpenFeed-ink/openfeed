@@ -8,9 +8,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Sparkles } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
 import { categoryConfig } from "@/type"
 import { ChangelogActions } from "../ChangelogActions/ChangelogActions"
+import { FormatDistanceToNow } from "../FromatDistanceToNow/FormatDistanceToNow"
 
 export type ChangelogEntry = {
   id: string
@@ -31,12 +31,10 @@ export type ChangelogEntry = {
 
 interface ChangelogListProps {
   entries: ChangelogEntry[],
-  canEdit: boolean,
-  canDelete: boolean,
   userId: string,
 }
 
-export function ChangelogList({ entries, canEdit, canDelete, userId }: ChangelogListProps) {
+export function ChangelogList({ entries, userId }: ChangelogListProps) {
   if (entries.length === 0) {
     return (
       <Card className="p-12 text-center">
@@ -54,7 +52,6 @@ export function ChangelogList({ entries, canEdit, canDelete, userId }: Changelog
       {entries.map((entry) => {
         const config = categoryConfig[entry.category] || categoryConfig.new_feature
         const Icon = config.icon
-        const createdAt = new Date(entry.createdAt)
         const user = entry.user
         const userRole = user?.usersProjects?.[0]?.role
 
@@ -75,11 +72,10 @@ export function ChangelogList({ entries, canEdit, canDelete, userId }: Changelog
                 </div>
               </AccordionTrigger>
               {/* Edit Button */}
-              {(canEdit || canDelete || entry.user?.id === userId) && <ChangelogActions
+              <ChangelogActions
                 entry={entry}
-                canDelete={canDelete || entry.user?.id === userId}
-                canEdit={canEdit || entry.user?.id === userId} />
-              }
+                userId={userId}
+              />
             </div>
 
             <AccordionContent className="px-4 pb-6 pt-2 max-h-[75vh] overflow-auto">
@@ -104,8 +100,9 @@ export function ChangelogList({ entries, canEdit, canDelete, userId }: Changelog
                   <span className="text-sm text-muted-foreground">Anonymous</span>
                 )}
                 <time className="text-xs text-muted-foreground" dateTime={entry.createdAt.toString()}>
-                  {formatDistanceToNow(createdAt, { addSuffix: true })}
+                  <FormatDistanceToNow createdAt={entry.createdAt}/>
                 </time>
+              
               </div>
 
               {/* Changelog content */}

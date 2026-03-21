@@ -9,13 +9,15 @@
     "lint": "eslint",
     "generate": "drizzle-kit generate",
     "pushdb": "drizzle-kit push --force",
-    "email:dev": "email dev"
+    "email:dev": "email dev",
+    "seed": "npx tsx scripts/seedFeatures.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@faker-js/faker": "^10.3.0",
     "@hookform/resolvers": "^5.2.2",
     "@react-email/components": "^1.0.8",
     "@react-email/render": "^2.0.4",

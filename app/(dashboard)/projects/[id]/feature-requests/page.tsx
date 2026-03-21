@@ -3,13 +3,16 @@ import { databaseDrizzle } from "@/db";
 import { redirect } from 'next/navigation'
 import { UpsertFeature } from "@/components/UpsertFeature/UpsertFeature";
 import { UpvoteProvider } from "@/contexts/UpvoteProvider";
-import { isUUID, permission } from "@/lib/utils";
-import { and, eq, ilike, inArray, or, sql } from "drizzle-orm";
-import { feature, featureTags, project, usersProjects } from "@/db/schema";
+import { isUUID } from "@/lib/utils";
+import { and, eq, ilike, inArray, or, count } from "drizzle-orm";
+import { feature, featureTags, project } from "@/db/schema";
 import { FeatureFilters } from "@/components/FeatureFilters/FeatureFilters";
 import { FeatureList } from "@/components/FeatureLists/FeatureList";
 import { FeatureDetail } from "@/components/FeatureDetail/FeatureDetail";
 import { getServerSession } from "@/lib/server/session";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { NoFeatureRequest } from "@/components/FeatureDetail/NoFeatureRequest";
 
 
 interface PageProps {
@@ -35,8 +38,6 @@ export interface QFeature {
   authorName: string | null;
   authorEmail: string | null;
   authorId: string | null;
-  aiSummary: string | null;
-  priorityScore: number | null;
   upvotes: {
     id: string;
   }[];
@@ -61,7 +62,7 @@ type FeatureStatus = QFeature["status"]
 export default async function ProjectFeedbackPage({ params, searchParams }: PageProps) {
   const [{ id }, {
     status = "all",
-    sort = "most-votes",
+    sort = "newest",
     q = "",
     tags = "",
     page = "1",
@@ -96,7 +97,7 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
       : undefined
   );
 
-  const [projectData, features, totalCountResult, memberships] = await Promise.all([
+  const [projectData, features, [{ filteredCount }], [{ totalProjectCount }]] = await Promise.all([
     databaseDrizzle.query.project.findFirst({
       where: eq(project.id, id),
       columns: { name: true },
@@ -126,22 +127,19 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
       },
     }),
     databaseDrizzle
-      .select({ count: sql<number>`count(*)` })
+      .select({ filteredCount: count() })
       .from(feature)
       .where(featureWhere)
       .limit(1),
-    databaseDrizzle.query.usersProjects.findMany({
-      where: eq(usersProjects.projectId, id),
-      columns: { userId: true, role: true },
-    })
+    databaseDrizzle
+      .select({ totalProjectCount: count() })
+      .from(feature)
+      .where(eq(feature.projectId, id)),
   ]);
 
   if (!projectData) return notFound();
 
-  const totalCount = totalCountResult[0]?.count ?? 0;
-  const totalPages = Math.ceil(totalCount / pageSize);
-
-  const permit = permission(memberships, session.user.id)
+  const totalPages = Math.ceil(filteredCount / pageSize);
 
   return (
     <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
@@ -149,13 +147,19 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            {projectData.name} Feature Request ({totalCount})
+            {projectData.name} Feature Request ({filteredCount})
           </h1>
           <p className="text-sm text-muted-foreground">
             Manage and respond to user feedback
           </p>
         </div>
-        {permit.addNewFeature && <UpsertFeature userName={session.user.name} userId={session.user.id} projectId={id} availableTags={projectData.tags} />}
+        <UpsertFeature
+          userName={session.user.name}
+          userId={session.user.id}
+          projectId={id}
+          availableTags={projectData.tags}
+          projectFeatureCount={totalProjectCount}
+        />
       </div>
 
       {/* Filters */}
@@ -192,25 +196,18 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
           {/* Right panel - Feedback detail */}
           <div className="lg:col-span-2">
             {featureId && isUUID(featureId) ? (
-              <FeatureDetail
-                featureId={featureId}
-                user={{
-                  id: session.user.id,
-                  name: session.user.name,
-                  image: session.user.image ?? null
-                }}
-                memberships={memberships}
-              />
+              <Suspense key={featureId} fallback={<Skeleton className="h-150 rounded-xl w-full" />}>
+                <FeatureDetail
+                  featureId={featureId}
+                  user={{
+                    id: session.user.id,
+                    name: session.user.name,
+                    image: session.user.image ?? null
+                  }}
+                />
+              </Suspense>
             ) : (
-              <div className="flex h-full min-h-100 items-center justify-center rounded-lg border bg-card p-8 text-center">
-                <div>
-                  <div className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                  <h3 className="mt-4 text-lg font-medium">No Feature Request or Feedback selected</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Click on a Feature Request item to view details
-                  </p>
-                </div>
-              </div>
+              <NoFeatureRequest />
             )}
           </div>
         </UpvoteProvider>

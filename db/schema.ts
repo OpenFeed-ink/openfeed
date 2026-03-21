@@ -2,7 +2,7 @@ import { defaultConfig } from "@/lib/utils";
 import { AnnouncementConfig, TriggerBtn } from "@/type";
 import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, boolean, index, pgEnum, varchar, uuid, uniqueIndex, integer, primaryKey, unique, AnyPgColumn, jsonb } from "drizzle-orm/pg-core";
-export const planEnum = pgEnum('plan', ["FREE", 'BASIC', 'PRO', 'BUSINESS', 'ENTERPRISE', 'OS']);
+export const planEnum = pgEnum('plan', ["FREE", 'STARTER', 'GROWTH', 'SCALE', 'OS']);
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -10,7 +10,7 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
@@ -80,6 +80,9 @@ export const verification = pgTable(
 export const project = pgTable("project", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  owner: text("owner_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   description: text("description"),
   roadmapHiddenColumns: text("roadmap_hidden_columns").array().default([]).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -112,8 +115,8 @@ export const invitation = pgTable("invitation", {
   email: text("email").unique().notNull(),
   role: roleEnum("role").notNull(),
   token: text("token").notNull().unique(),
-  expiresAt: timestamp("expires_at", {withTimezone:true}).notNull(),
-  acceptedAt: timestamp("accepted_at", {withTimezone:true}),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
 });
 
 export const featureStatusEnum = pgEnum("feature_statu", [
@@ -149,7 +152,7 @@ export const feature = pgTable("feature", {
   pinnedComment: uuid("pinned_comment")
     .references((): AnyPgColumn => comment.id, { onDelete: "set null" }),
 
-  createdAt: timestamp("created_at", {withTimezone:true}).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [
   index("project_feature_idx").on(t.projectId),
   index("feature_project_status_created_idx").on(t.projectId, t.status, t.createdAt),
@@ -168,7 +171,7 @@ export const upvote = pgTable(
     voterEmail: varchar("voter_email", { length: 255 }),
     voterToken: varchar("voter_token", { length: 255 }).notNull(),
 
-    createdAt: timestamp("created_at", {withTimezone:true}).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   }, (table) => [
     uniqueIndex("unique_feature_voter")
       .on(table.featureId, table.voterToken)
@@ -185,7 +188,7 @@ export const comment = pgTable("comments", {
   authorId: text("author_id").references(() => user.id, { onDelete: "cascade" }),
   visitorToken: varchar("visitor_token", { length: 255 }),
   parentId: uuid("parent_id").references((): AnyPgColumn => comment.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at", {withTimezone:true}).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   index("comments_feature_idx").on(table.featureId),
   index("comments_parent_idx").on(table.parentId),
@@ -198,7 +201,7 @@ export const tag = pgTable("tag", {
     .references(() => project.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 50 }).notNull(),
   color: varchar("color", { length: 7 }).notNull().default("#14b8a6"), // hex color
-  createdAt: timestamp("created_at", {withTimezone:true}).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [
   unique("tag_project_name_unique").on(t.projectId, t.name),
 ]);
@@ -251,14 +254,14 @@ export const changelogs = pgTable("changelogs", {
   title: varchar("title", { length: 255 }).notNull(),
   content: text("content").notNull(), // HTML from Tiptap
   category: changelogCategoryEnum("category").default("new_feature").notNull(),
-  createdAt: timestamp("created_at", {withTimezone:true}).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [
   index("changelogs_project_created_idx").on(t.projectId, t.createdAt),
 ]);
 
 export const widgetDailyStats = pgTable("widget_daily_stats", {
   projectId: text("project_id").notNull(),
-  date: timestamp("date", {withTimezone:true}).notNull(),
+  date: timestamp("date", { withTimezone: true }).notNull(),
   opens: integer("opens").default(0).notNull(),
 }, (t) => ([
   primaryKey({ columns: [t.projectId, t.date] }),

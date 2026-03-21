@@ -61,7 +61,7 @@ export function ProjectSwitcher({
                 </div>
 
                 {/* Icon - never shrink */}
-                <ChevronsUpDown className="ml-auto shrink-0" />
+                <ChevronsUpDown className="ml-auto shrink-0 text-secondary-foreground" />
               </Button>
 
             </SidebarMenuButton>

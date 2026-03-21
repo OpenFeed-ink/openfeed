@@ -10,12 +10,11 @@ import { useFormStatus } from "react-dom";
 import { comment } from "@/db/schema";
 
 
-export const AddComments = ({ featureId, projectId, parentId, userId, userName, currentComment, afterAction, isAnonymous }: {
+export const AddComments = ({ featureId, projectId, parentId, userId, userName, currentComment, afterAction}: {
   featureId: string,
   projectId: string,
   userId: string,
   userName: string,
-  isAnonymous: boolean,
   currentComment?: typeof comment.$inferInsert,
   parentId?: string,
   afterAction?: () => void
@@ -36,7 +35,6 @@ export const AddComments = ({ featureId, projectId, parentId, userId, userName, 
       data.set("featureId", featureId)
       data.set("userId", userId)
       data.set("name", userName)
-      data.set("isAnonymous", isAnonymous ? "TRUE" : "FALSE")
 
       if (parentId) data.set("parentId", parentId)
       formAction(data)
@@ -61,8 +59,8 @@ const FeatureForm = ({ newComment }: { newComment?: typeof comment.$inferInsert 
       />
       <Button
         type="submit"
-        size="icon"
-        className="h-15 w-15 bg-teal-600 hover:bg-teal-700"
+        size="icon-lg"
+        className="h-full"
         disabled={pending}
       >
         {pending ? (

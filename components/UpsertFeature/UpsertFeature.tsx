@@ -33,6 +33,10 @@ import { TagSelector } from "../TagSelector/TagSelector";
 import { QFeature } from "@/app/(dashboard)/projects/[id]/feature-requests/page";
 import { tag } from "@/db/schema";
 import { EMPTY_FORM_STATE } from "@/lib/zodErrorHandle";
+import { useProjectPermission } from "@/contexts/ProjectPermissionProvider";
+import { useAuthorization } from "@/contexts/AuthorizationProvider";
+import Link from "next/link"
+
 
 type Tag = typeof tag.$inferSelect;
 
@@ -50,14 +54,48 @@ interface UpsertFeatureProps {
   availableTags: Tag[];
   userId: string
   userName: string
+  projectFeatureCount: number
 }
 
-export function UpsertFeature({ projectId, feature, availableTags, userId, userName }: UpsertFeatureProps) {
+export function UpsertFeature({
+  projectId,
+  feature,
+  availableTags,
+  userId,
+  userName,
+  projectFeatureCount,
+}: UpsertFeatureProps) {
+  const permit = useProjectPermission();
+
+  const isOwner = feature?.authorId === userId;
+
+  const canEdit = feature && (isOwner || permit.editFeature);
+  const canCreate = !feature && permit.addNewFeature;
+
+  if (!canEdit && !canCreate) return null;
+
+  return (
+    <UpsertFeatureDialog
+      projectId={projectId}
+      feature={feature}
+      availableTags={availableTags}
+      userId={userId}
+      userName={userName}
+      projectFeatureCount={projectFeatureCount}
+    />
+  );
+}
+
+
+function UpsertFeatureDialog({ projectId, feature, availableTags, userId, userName, projectFeatureCount }: UpsertFeatureProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitPending, startSubmitTransition] = useTransition();
   const [similarPending, startSimilarTransition] = useTransition();
   const [similarFeatures, setSimilarFeatures] = useState<Feature[]>([]);
+  const { requireFeature } = useAuthorization()
+
+  const canCreateNewFeature = requireFeature('featureRequest', projectFeatureCount)
 
   const [featureForm, setFeatureForm] = useState({
     title: feature?.title ?? "",
@@ -104,7 +142,6 @@ export function UpsertFeature({ projectId, feature, availableTags, userId, userN
     const form = new FormData();
     form.set("title", featureForm.title);
     form.set("description", featureForm.description);
-    form.set("isAnonymous", "FALSE")
     form.set("userId", userId)
     form.set("userName", userName)
     form.set("status", featureForm.status);
@@ -119,7 +156,9 @@ export function UpsertFeature({ projectId, feature, availableTags, userId, userN
       }
       if (result.status === "SUCCESS") {
         toast.success(result.message);
-        setOpen(false);
+        setTimeout(() => {
+          setOpen(false);
+        }, 100);
       }
     });
   };
@@ -138,17 +177,19 @@ export function UpsertFeature({ projectId, feature, availableTags, userId, userN
     <Dialog
       open={open}
       onOpenChange={(value) => {
+        if (!value) {
+          resetForm()
+        }
         setOpen(value);
-        resetForm();
       }}
     >
       <DialogTrigger asChild>
         {feature ? (
           <Button variant="ghost" size="icon" className="cursor-pointer">
-            <Edit className="h-4 w-4 text-muted-foreground hover:text-teal-600" />
+            <Edit className="h-4 w-4 text-muted-foreground hover:text-emerald-600" />
           </Button>
         ) : (
-          <Button size="lg" className="cursor-pointer bg-teal-600 hover:bg-teal-700">
+          <Button size="lg" className="cursor-pointer bg-emerald-600 hover:bg-emerald-700">
             <Plus className="mr-2 h-4 w-4" />
             New Feature
           </Button>
@@ -206,7 +247,7 @@ export function UpsertFeature({ projectId, feature, availableTags, userId, userN
                       }}
                       className="cursor-pointer"
                     >
-                      <Card className="text-left p-3 rounded-lg border border-yellow-200 dark:border-yellow-800 hover:border-teal-500 hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-teal-500">
+                      <Card className="text-left p-3 rounded-lg border border-yellow-200 dark:border-yellow-800 hover:border-emerald-500 hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500">
                         <div className="font-medium text-sm line-clamp-1">{f.title}</div>
                         {f.description && (
                           <div className="text-xs text-muted-foreground line-clamp-2 mt-1">
@@ -279,27 +320,36 @@ export function UpsertFeature({ projectId, feature, availableTags, userId, userN
         </div>
 
         <DialogFooter>
-          <DialogClose asChild>
-            <Button type="button" variant="outline">
-              Cancel
+          {canCreateNewFeature || !!feature ? <>
+            <DialogClose asChild>
+              <Button type="button" variant="outline">
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              disabled={submitPending}
+              onClick={submitFeature}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              {submitPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {feature ? "Updating..." : "Creating..."}
+                </>
+              ) : feature ? (
+                "Update Feature"
+              ) : (
+                "Create Feature"
+              )}
             </Button>
-          </DialogClose>
-          <Button
-            disabled={submitPending}
-            onClick={submitFeature}
-            className="bg-teal-600 hover:bg-teal-700"
-          >
-            {submitPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {feature ? "Updating..." : "Creating..."}
-              </>
-            ) : feature ? (
-              "Update Feature"
-            ) : (
-              "Create Feature"
-            )}
-          </Button>
+          </> :
+            <p className="text-sm text-muted-foreground w-full text-left">
+              Feature limit reached.{" "}
+              <Button variant="link" className="p-0 h-auto text-emerald-600" asChild>
+                <Link href="/billing">Upgrade your plan</Link>
+              </Button>
+            </p>
+          }
         </DialogFooter>
       </DialogContent>
     </Dialog>

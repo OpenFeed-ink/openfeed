@@ -8,15 +8,14 @@ import { Pin, PinOff, Reply } from "lucide-react";
 import { DeleteComment } from "@/components/DeleteComment/DeleteComment";
 import { useComment } from "@/contexts/CommentProvider";
 import { CommentNode } from "@/type";
-import { permission } from "@/lib/utils";
 import { AddComments } from "../AddComments/AddComments";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useProjectPermission } from "@/contexts/ProjectPermissionProvider";
 
 export function RenderComment({ comment, userName, userId, depth = 0 }: { comment: CommentNode; userName: string, userId: string; depth?: number }) {
   const {
     user,
     feature,
-    memberships,
     replyingTo,
     setReplyingTo,
     pinComment,
@@ -25,8 +24,8 @@ export function RenderComment({ comment, userName, userId, depth = 0 }: { commen
 
   const isMobile = useIsMobile();
   const isAuthor = comment.authorId === user.id || comment.visitorToken === user.id;
-  const permit = permission(memberships, user.id);
   const isPinned = comment.id === pinCommentId;
+  const authorRole = comment.author?.usersProjects[0].role
 
   const maxDepth = 10;
   const effectiveDepth = Math.min(depth, maxDepth);
@@ -35,7 +34,7 @@ export function RenderComment({ comment, userName, userId, depth = 0 }: { commen
     ? (isMobile ? "ml-2 border-l border-muted pl-2" : "ml-6 border-l-2 border-muted pl-4")
     : "";
   const pinnedClass = isPinned ? "rounded-md bg-yellow-50 dark:bg-yellow-950/30 p-3" : "";
-
+const permit = useProjectPermission();
   return (
     <div className={`space-y-2 ${indentClass} ${pinnedClass}`}>
       <div className="flex gap-2 sm:gap-3">
@@ -48,7 +47,7 @@ export function RenderComment({ comment, userName, userId, depth = 0 }: { commen
 
         <div className="flex-1 min-w-0">
           {/* Header with metadata */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+          <div className="flex sm:flex-row sm:items-center sm:justify-between gap-1">
             <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
               <span className="text-sm font-semibold truncate max-w-30 sm:max-w-none">
                 {comment.authorName || "Anonymous"}
@@ -56,7 +55,7 @@ export function RenderComment({ comment, userName, userId, depth = 0 }: { commen
 
               {comment.authorId && (
                 <Badge variant="outline" className="text-xs px-1 py-0 capitalize">
-                  {memberships.find((m) => m.userId === comment.authorId)?.role.toLowerCase() || "Member"}
+                  {authorRole || "Anonymous"}
                 </Badge>
               )}
 
@@ -96,7 +95,7 @@ export function RenderComment({ comment, userName, userId, depth = 0 }: { commen
           </div>
 
           {/* Comment content */}
-          <p className="text-sm text-foreground whitespace-pre-wrap wrap-break-word mt-1 max-w-112.5">
+          <p className="text-sm text-foreground whitespace-pre-wrap wrap-break-word mt-1 max-w-122.5">
             {comment.content}
           </p>
 

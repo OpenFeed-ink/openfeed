@@ -28,11 +28,13 @@ export async function upsertProjectAction(_: FormState, formData: FormData) {
       headers: await headers(),
     });
     if (!session?.user?.id) throw new Error("forbidden");
+
     const projectId = id ?? nanoid()
 
     const newProject: typeof project.$inferInsert = {
       id: projectId,
       name,
+      owner: session.user.id,
       description,
     }
 

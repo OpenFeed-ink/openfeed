@@ -20,22 +20,29 @@ export default async function page() {
   const session = await getServerSession();
 
   if (!session?.user.id) return redirect("/signin")
-  const { name, email, image } = session.user
 
   const userProjects = await databaseDrizzle.query.usersProjects.findMany({
     where: (up, ops) => ops.eq(up.userId, session.user.id),
     columns: {
       role: true,
-
     },
     with: {
-      project: true
+      project: {
+        columns: {
+          name: true,
+          id: true,
+          description: true,
+          owner: true
+        }
+      }
     }
   })
 
+  const userOwnProject = userProjects.filter(u => u.project.owner === session.user.id).length
+
   return (
     <div className="w-full">
-      <Navbar name={name} email={email} image={image ?? undefined} />
+      <Navbar user={session.user} />
       <div className="w-full max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
 
         {/* Header */}
@@ -46,7 +53,7 @@ export default async function page() {
               Manage your feedback boards and roadmap projects
             </p>
           </div>
-          <UpsertProject />
+          <UpsertProject userProjectCount={userOwnProject} />
         </div>
 
         {/* Empty State */}
@@ -55,14 +62,14 @@ export default async function page() {
             className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border py-16 mt-6"
             data-testid="no-projects"
           >
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-900/30">
-              <FolderKanban className="h-8 w-8 text-teal-600 dark:text-teal-400" />
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+              <FolderKanban className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
             </div>
             <h3 className="mb-2 text-lg font-semibold text-foreground">No projects yet</h3>
             <p className="mb-6 max-w-sm text-center text-sm text-muted-foreground">
               Create your first project to start collecting feedback from your users.
             </p>
-            <UpsertProject title="Create Your First Project" />
+            <UpsertProject title="Create Your First Project" userProjectCount={userOwnProject} />
           </div>
         ) : (
           /* Project Grid */
@@ -70,12 +77,12 @@ export default async function page() {
             {userProjects.map(({ project, role }) => (
               <div key={project.id}>
                 <Card
-                  className="group relative cursor-pointer overflow-hidden transition-all duration-300 hover:border-teal-500/50 hover:shadow-lg"
+                  className="group relative cursor-pointer overflow-hidden transition-all duration-300 hover:border-emerald-500/50 hover:shadow-lg"
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center justify-center gap-5">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-100 dark:bg-emerald-900/30">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
                           <FolderKanban className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                         </div>
                         <Badge
@@ -86,18 +93,18 @@ export default async function page() {
                         </Badge>
                       </div>
                       {role === 'ADMIN' && (<div className="flex gap-1">
-                        <UpsertProject projectData={project} />
+                        <UpsertProject projectData={project} userProjectCount={userOwnProject} />
                         <DeleteProject id={project.id} />
                       </div>)}
                     </div>
-                    <Link href={`/projects/${project.id}`}>
+                    <Link href={`/projects/${project.id}`} prefetch>
                       <CardTitle className="mt-3 line-clamp-1 text-lg">{project.name}</CardTitle>
                       <CardDescription className="line-clamp-2">
                         {project.description || "No Description"}
                       </CardDescription>
                     </Link>
                   </CardHeader>
-                  <Link href={`/projects/${project.id}`}>
+                  <Link href={`/projects/${project.id}`} prefetch>
                     <CardContent>
                       <div className="flex items-center justify-between text-sm">
                         <span className="rounded bg-muted px-2 py-1 font-mono text-xs">

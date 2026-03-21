@@ -9,7 +9,7 @@ export default function ProjectLoading() {
         <Skeleton className="h-28 rounded-xl" />
         <Skeleton className="h-28 rounded-xl" />
       </div>
-      <Skeleton className="h-[420px] rounded-xl" />
+      <Skeleton className="h-105 rounded-xl" />
     </div>
   )
 }

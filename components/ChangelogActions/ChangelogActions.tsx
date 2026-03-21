@@ -11,11 +11,20 @@ import { UpsertChangelog } from '../UpsertChangelog/UpsertChangelog'
 import { ChangelogEntry } from '../ChangelogList/ChangelogList'
 import { useState } from "react";
 import { DeleteChangelog } from "../DeleteChangelog/DeleteChangelog";
+import { useProjectPermission } from "@/contexts/ProjectPermissionProvider";
 
-export const ChangelogActions = ({ entry, canEdit, canDelete }: { entry: ChangelogEntry, canDelete:boolean, canEdit:boolean }) => {
+export const ChangelogActions = ({ entry, userId }: { entry: ChangelogEntry, userId: string }) => {
   const [openEditChangelog, setOpenEditChangelog] = useState(false)
   const [openDeleteChangelog, setOpenDeleteChangelog] = useState(false)
+  const permit = useProjectPermission()
 
+  const isOwner = entry.user?.id === userId;
+
+  const canEdit = isOwner || permit.editChangelog
+  const canDelete = isOwner || permit.deleteChangelog
+
+  if (!canEdit && !canDelete) return null;
+  
   return (
     <> <div className="absolute right-3 top-1/2 -translate-y-1/2">
       <DropdownMenu>
@@ -45,6 +54,7 @@ export const ChangelogActions = ({ entry, canEdit, canDelete }: { entry: Changel
         projectId={entry.projectId}
         openEditChangelog={openEditChangelog}
         setOpenEditChangelogAction={setOpenEditChangelog}
+        userId={userId}
       />
       <DeleteChangelog
         id={entry.id}
