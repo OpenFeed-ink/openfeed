@@ -1,7 +1,5 @@
-import { eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { databaseDrizzle } from "@/db";
-import { usersProjects } from "@/db/schema";
 import { TeamMembers } from "@/components/TeamMmbers/TeamMembers";
 import { InviteForm } from "@/components/InviteForm/InviteForm";
 import { getServerSession } from "@/lib/server/session";
@@ -14,29 +12,34 @@ export default async function TeamPage({ params }: PageProps) {
   const [{ id: projectId }, session] = await Promise.all([params, getServerSession()]);
   if (!session?.user.id) redirect("/signin");
 
-  const members = await databaseDrizzle.query.usersProjects.findMany({
-    where: eq(usersProjects.projectId, projectId),
+  const projectMemeber = await databaseDrizzle.query.project.findFirst({
+    where: (p, ops) => ops.eq(p.id, projectId),
+    columns: {
+      ownerId: true,
+    },
     with: {
-      user: {
+      usersProjects: {
         columns: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
+          role: true
         },
+        with: {
+          user: {
+            columns: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        }
       },
     },
   });
 
-  if (members.length === 0) {
-    return notFound();
-  }
-  const currentUserMembership = members.find(m => m.userId === session.user.id);
-  if (!currentUserMembership) {
-    return redirect("/");
-  }
+  if (!projectMemeber) return notFound()
 
-  const isAdmin = currentUserMembership.role === "ADMIN";
+  const role = projectMemeber.ownerId === session.user.id ? "OWNER" : projectMemeber.usersProjects.find(up => up.user.id === session.user.id)?.role
+  if (!role) return notFound()
 
   return (
     <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
@@ -51,19 +54,17 @@ export default async function TeamPage({ params }: PageProps) {
         {/* Member list */}
         <div className="md:col-span-2">
           <TeamMembers
-            members={members}
-            currentUserId={session.user.id}
-            isAdmin={isAdmin}
             projectId={projectId}
+            projectMemeber={projectMemeber}
+            userRole={role}
+            currentUserId={session.user.id}
           />
         </div>
 
         {/* Invite form (only for admins) */}
-        {isAdmin && (
-          <div>
-            <InviteForm projectId={projectId} />
-          </div>
-        )}
+        <div>
+          <InviteForm projectId={projectId} currentMemeberCount={projectMemeber.usersProjects.length} />
+        </div>
       </div>
     </div>
   );

@@ -20,12 +20,12 @@ import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
-export const DeleteFeature = ({ id, projectId, authorId, userId }: { id: string, projectId: string, authorId: string| null, userId: string }) => {
-  const permit = useProjectPermission();
-
+export const DeleteFeature = ({ id, projectId, authorId, userId }: { id: string, projectId: string, authorId: string | null, userId: string }) => {
+  const { getPermission, getUserRole } = useProjectPermission();
+  const permit = getPermission()
   const isOwner = authorId === userId && authorId !== null;
-
-  if (!isOwner && !permit.deleteAnyFeature) return null;
+  const isMemeberFeature = authorId != null && getUserRole(authorId).role !== 'ANONYMOUS'
+  if (!isOwner && (isMemeberFeature || !permit.deleteAnyFeature)) return null
 
   return (
     <DeleteFeatureDailog id={id} projectId={projectId} />

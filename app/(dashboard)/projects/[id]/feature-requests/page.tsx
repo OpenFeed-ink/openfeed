@@ -199,6 +199,7 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
               <Suspense key={featureId} fallback={<Skeleton className="h-150 rounded-xl w-full" />}>
                 <FeatureDetail
                   featureId={featureId}
+                  projectId={id}
                   user={{
                     id: session.user.id,
                     name: session.user.name,

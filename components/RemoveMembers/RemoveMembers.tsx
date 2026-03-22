@@ -1,4 +1,5 @@
 "use client"
+import { removememberAction } from "@/actions/teams";
 import { Button } from "@/components/ui/button"
 import { UserMinus } from "lucide-react"
 import { useTransition } from "react";
@@ -13,11 +14,14 @@ export const RemoveMembers = ({ projectId, userName, userId }: { projectId: stri
         const formData = new FormData();
         formData.append("projectId", projectId);
         formData.append("userId", userId);
-        try {
-          //  await removeMemberAction(formData);
+        const res = await removememberAction(formData);
+        if (res.status === 'ERROR') {
+          toast.error(res.message || "Failed to remove member");
+          return;
+        }
+        if (res.status === 'SUCCESS') {
           toast.success("Member removed");
-        } catch (error: any) {
-          toast.error(error.message || "Failed to remove member");
+          return;
         }
       });
     }

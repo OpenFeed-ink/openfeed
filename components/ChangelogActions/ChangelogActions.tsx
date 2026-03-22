@@ -16,7 +16,8 @@ import { useProjectPermission } from "@/contexts/ProjectPermissionProvider";
 export const ChangelogActions = ({ entry, userId }: { entry: ChangelogEntry, userId: string }) => {
   const [openEditChangelog, setOpenEditChangelog] = useState(false)
   const [openDeleteChangelog, setOpenDeleteChangelog] = useState(false)
-  const permit = useProjectPermission()
+  const { getPermission } = useProjectPermission()
+  const permit = getPermission()
 
   const isOwner = entry.user?.id === userId;
 
@@ -24,7 +25,7 @@ export const ChangelogActions = ({ entry, userId }: { entry: ChangelogEntry, use
   const canDelete = isOwner || permit.deleteChangelog
 
   if (!canEdit && !canDelete) return null;
-  
+
   return (
     <> <div className="absolute right-3 top-1/2 -translate-y-1/2">
       <DropdownMenu>

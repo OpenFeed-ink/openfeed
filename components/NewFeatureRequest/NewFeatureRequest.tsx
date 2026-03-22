@@ -75,12 +75,11 @@ export function NewFeatureRequest({ projectId, tags, user }: { projectId: string
     const form = new FormData();
     form.set("title", featureForm.title);
     form.set("description", featureForm.description);
+    form.set("userId", user.id)
+    form.set("userName", user.name)
     form.set("status", featureForm.status);
     featureForm.selectedTags.forEach((tag) => form.append("tagIds", tag.id));
     form.set("projectId", projectId);
-    form.set("userId", user.id)
-    form.set("userName", user.name)
-    form.set("isAnonymous", "TRUE")
 
     startSubmitTransition(async () => {
       const result = await upsertFeaturesAction(EMPTY_FORM_STATE, form);

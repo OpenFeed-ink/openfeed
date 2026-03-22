@@ -63,8 +63,6 @@ export function WidgetBuilderProvider({
       toast.error("Please fix the errors before saving")
       return
     }
-
-    // clear errors if valid
     setErrors({})
     startTransition(async () => {
       form.set("config", JSON.stringify(config))

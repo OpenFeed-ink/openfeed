@@ -5,6 +5,8 @@ import { fromErrorToFormState, FormState, toFormState } from "@/lib/zodErrorHand
 import { z } from "zod";
 import { revalidatePath } from 'next/cache';
 import { and, eq, sql } from 'drizzle-orm';
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 const UpvoteData = z.object({
   featureId: z.string().min(3),
@@ -14,12 +16,20 @@ const UpvoteData = z.object({
 
 export async function upvotesAction(_: FormState, formData: FormData) {
   try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
     const { featureId, projectId, voterToken } = UpvoteData.parse({
       featureId: formData.get("featureId"),
       projectId: formData.get("projectId"),
       voterToken: formData.get("voterToken")
     })
+    let userId = voterToken
 
+    if (session?.user.id) {
+      userId = session.user.id
+    }
 
     await databaseDrizzle.transaction(async (tx) => {
       // 1. try to delete existing vote
@@ -28,7 +38,7 @@ export async function upvotesAction(_: FormState, formData: FormData) {
         .where(
           and(
             eq(upvote.featureId, featureId),
-            eq(upvote.voterToken, voterToken),
+            eq(upvote.voterToken, userId),
           )
         )
         .returning({ id: upvote.id })
@@ -45,7 +55,7 @@ export async function upvotesAction(_: FormState, formData: FormData) {
         // 3. f not existed → insert
         await tx.insert(upvote).values({
           featureId,
-          voterToken,
+          voterToken: userId,
         })
 
         await tx

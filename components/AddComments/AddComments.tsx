@@ -10,7 +10,7 @@ import { useFormStatus } from "react-dom";
 import { comment } from "@/db/schema";
 
 
-export const AddComments = ({ featureId, projectId, parentId, userId, userName, currentComment, afterAction}: {
+export const AddComments = ({ featureId, projectId, parentId, userId, userName, currentComment, afterAction }: {
   featureId: string,
   projectId: string,
   userId: string,
@@ -37,8 +37,9 @@ export const AddComments = ({ featureId, projectId, parentId, userId, userName, 
       data.set("name", userName)
 
       if (parentId) data.set("parentId", parentId)
-      formAction(data)
-      afterAction?.()
+      formAction(data);
+      (globalThis as any).__scrollCommentsToTop?.();
+      afterAction?.();
     }} >
       <FeatureForm newComment={currentComment} />
     </form>

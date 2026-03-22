@@ -80,7 +80,7 @@ export const verification = pgTable(
 export const project = pgTable("project", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  owner: text("owner_id")
+  ownerId: text("owner_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   description: text("description"),
@@ -368,12 +368,16 @@ export const usersProjectsRelations = relations(usersProjects, ({ one }) => ({
   })
 }))
 
-export const projectRelations = relations(project, ({ many }) => ({
+export const projectRelations = relations(project, ({ many, one }) => ({
   usersProjects: many(usersProjects),
   features: many(feature),
   tags: many(tag),
   changelog: many(changelogs),
-  widgetDailyStats: many(widgetDailyStats)
+  widgetDailyStats: many(widgetDailyStats),
+  owner: one(user, {
+    fields: [project.ownerId],
+    references: [user.id]
+  })
 }));
 
 export const widgetDailyStatsRelations = relations(widgetDailyStats, ({ one }) => ({

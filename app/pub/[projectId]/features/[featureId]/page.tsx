@@ -2,27 +2,35 @@ import { FeatureDetail } from "@/components/FeatureDetail/FeatureDetail"
 import ThemeController from "@/components/ThemeController"
 import { UpvoteProvider } from "@/contexts/UpvoteProvider"
 import { databaseDrizzle } from "@/db"
-import { usersProjects } from "@/db/schema"
+import { getServerSession } from "@/lib/server/session"
 import { isUUID } from "@/lib/utils"
-import { eq } from "drizzle-orm"
+import { Author } from "@/type"
 import { cookies } from 'next/headers'
 import { notFound } from "next/navigation"
 
 
 export default async function page({ params, searchParams }: { params: Promise<{ projectId: string, featureId: string }>, searchParams: Promise<{ theme: string }> }) {
-  const { featureId, projectId } = await params
-  const { theme } = await searchParams
-  const cookieStore = await cookies()
+  const [{ featureId, projectId }, { theme }, session] = await Promise.all([params, searchParams, getServerSession()])
 
-  const visitorToken = cookieStore.get("visitor_token")?.value
+  if (!isUUID(featureId)) return notFound()
 
-  if (!visitorToken || !isUUID(featureId)) return notFound()
+  let user: Author | null = null
 
-  const visitorUser = {
-    id: visitorToken,
-    email: "visitor@openfeed.ink",
-    name: `User-${visitorToken.slice(0, 4).toUpperCase()}`,
-    image: null
+  if (session?.user.id) {
+    user = {
+      id: session.user.id,
+      name: session.user.name,
+      image: session.user.image ?? null,
+    }
+  } else {
+    const cookieStore = await cookies()
+    const visitorToken = cookieStore.get("visitor_token")?.value
+    if (!visitorToken) return notFound()
+    user = {
+      id: visitorToken,
+      name: `User-${visitorToken.slice(0, 4).toUpperCase()}`,
+      image: null
+    }
   }
 
   const featureData = await databaseDrizzle.query.feature.findFirst({
@@ -32,15 +40,10 @@ export default async function page({ params, searchParams }: { params: Promise<{
     },
     with: {
       upvotes: {
-        where: (u, ops) => ops.eq(u.voterToken, visitorUser.id),
+        where: (u, ops) => ops.eq(u.voterToken, user.id),
         columns: { id: true },
       },
     },
-  });
-
-  const memberships = await databaseDrizzle.query.usersProjects.findMany({
-    where: eq(usersProjects.projectId, projectId),
-    columns: { userId: true, role: true },
   });
 
   if (!featureData) return notFound()
@@ -56,13 +59,11 @@ export default async function page({ params, searchParams }: { params: Promise<{
           },
         }}
       >
-        <FeatureDetail 
-          user={visitorUser} 
-          memberships={memberships} 
-          featureId={featureId} 
+        <FeatureDetail
+          user={user}
+          featureId={featureId}
         />
       </UpvoteProvider>
-
     </ThemeController>
   )
 }

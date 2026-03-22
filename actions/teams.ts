@@ -83,7 +83,7 @@ export async function inviteMemberAction(formData: FormData) {
     const { error } = await resend.emails.send({
       from: `OpenFeed <${process.env.RESEND_EMAIL}>`,
       to: [email],
-      subject: `Join ${project.name} on OpenFeed`,
+      subject: `Join ${proj.name} on OpenFeed`,
       react: InvitationEmail({
         inviterName: session.user.name || session.user.email || "A team member",
         projectName: proj.name,
@@ -92,11 +92,33 @@ export async function inviteMemberAction(formData: FormData) {
         email,
       }),
     });
-
     if (error) throw new Error("Failed to send invitation email");
 
     revalidatePath(`/projects/${projectId}/team`);
     return toFormState("SUCCESS", "Invitation sent!");
+  } catch (e) {
+    return fromErrorToFormState(e);
+  }
+}
+
+export async function removememberAction(formData: FormData) {
+  try {
+    const { projectId, userId } = z.object({
+      projectId: z.string().min(4),
+      userId: z.string().min(4),
+    }).parse({
+      projectId: formData.get("projectId"),
+      userId: formData.get("userId")
+    })
+    await databaseDrizzle.delete(usersProjects)
+      .where(
+        and(
+          eq(usersProjects.userId, userId),
+          eq(usersProjects.projectId, projectId)
+        )
+      )
+    revalidatePath(`/projects/${projectId}/team`);
+    return toFormState("SUCCESS", "member removed");
   } catch (e) {
     return fromErrorToFormState(e);
   }

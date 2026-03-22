@@ -1,6 +1,5 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,6 +10,8 @@ import { CommentNode } from "@/type";
 import { AddComments } from "../AddComments/AddComments";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProjectPermission } from "@/contexts/ProjectPermissionProvider";
+import { useCallback } from "react";
+import { FormatDistanceToNow } from "../FromatDistanceToNow/FormatDistanceToNow";
 
 export function RenderComment({ comment, userName, userId, depth = 0 }: { comment: CommentNode; userName: string, userId: string; depth?: number }) {
   const {
@@ -21,11 +22,16 @@ export function RenderComment({ comment, userName, userId, depth = 0 }: { commen
     pinComment,
     pinCommentId,
   } = useComment();
-
+  const { getPermission, getUserRole } = useProjectPermission()
+  const permit = getPermission()
   const isMobile = useIsMobile();
+ 
   const isAuthor = comment.authorId === user.id || comment.visitorToken === user.id;
   const isPinned = comment.id === pinCommentId;
-  const authorRole = comment.author?.usersProjects[0].role
+
+  const getAuthorRole = useCallback(() => {
+    return getUserRole(comment.author?.id ?? "Anonymous").role.toLowerCase()
+  }, [comment.author?.id])
 
   const maxDepth = 10;
   const effectiveDepth = Math.min(depth, maxDepth);
@@ -34,7 +40,7 @@ export function RenderComment({ comment, userName, userId, depth = 0 }: { commen
     ? (isMobile ? "ml-2 border-l border-muted pl-2" : "ml-6 border-l-2 border-muted pl-4")
     : "";
   const pinnedClass = isPinned ? "rounded-md bg-yellow-50 dark:bg-yellow-950/30 p-3" : "";
-const permit = useProjectPermission();
+const authorRole = getAuthorRole()
   return (
     <div className={`space-y-2 ${indentClass} ${pinnedClass}`}>
       <div className="flex gap-2 sm:gap-3">
@@ -67,7 +73,7 @@ const permit = useProjectPermission();
               )}
 
               <span className="text-xs text-muted-foreground whitespace-nowrap">
-                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                <FormatDistanceToNow createdAt={comment.createdAt} />
               </span>
             </div>
 
@@ -84,7 +90,7 @@ const permit = useProjectPermission();
                 </Button>
               )}
 
-              {(isAuthor || permit.deleteComment) && (
+              {(isAuthor || (permit.deleteComment && authorRole === "anonymous")) && (
                 <DeleteComment
                   projectId={feature.projectId}
                   featureId={feature.id}

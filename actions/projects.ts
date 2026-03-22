@@ -34,7 +34,7 @@ export async function upsertProjectAction(_: FormState, formData: FormData) {
     const newProject: typeof project.$inferInsert = {
       id: projectId,
       name,
-      owner: session.user.id,
+      ownerId: session.user.id,
       description,
     }
 

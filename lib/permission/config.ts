@@ -14,7 +14,9 @@ export const PERMISSIONS: Record<Role, Permission> = {
     canPin: true,
     deleteChangelog: true,
     addNewChangelog: true,
-    editChangelog: true
+    editChangelog: true,
+    inviteMember: true,
+    removeMember: true,
   },
   MEMBER: {
     role: 'member',
@@ -29,7 +31,9 @@ export const PERMISSIONS: Record<Role, Permission> = {
     canPin: true,
     editChangelog: true,
     deleteChangelog: false,
-    addNewChangelog: true
+    addNewChangelog: true,
+    inviteMember: false,
+    removeMember: false,
   },
   ANONYMOUS: {
     role: 'anonymous',
@@ -45,5 +49,7 @@ export const PERMISSIONS: Record<Role, Permission> = {
     addNewChangelog: false,
     editChangelog: false,
     deleteChangelog: false,
+    inviteMember: false,
+    removeMember: false,
   },
 };

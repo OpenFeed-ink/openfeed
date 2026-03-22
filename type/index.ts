@@ -34,18 +34,14 @@ export type CommentNode = {
   authorName: string | null
   authorId: string | null
   visitorToken: string | null
-  author: {
-    id: string
-    name: string
-    image: string | null
-    usersProjects: Membership[]
-  } | null
+  author: Author | null
   parentId: string | null
   replies: CommentNode[]
 }
 
 export type Membership = {
-  role: "ADMIN" | "MEMBER"
+  userId: string,
+  role: "ADMIN" | "MEMBER" | "ANONYMOUS"
 }
 
 export type AnnouncementConfig = {

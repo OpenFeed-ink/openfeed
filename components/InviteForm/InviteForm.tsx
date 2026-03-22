@@ -20,13 +20,23 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Mail } from "lucide-react";
 import { inviteMemberAction } from "@/actions/teams";
+import { useProjectPermission } from "@/contexts/ProjectPermissionProvider";
+import { useAuthorization } from "@/contexts/AuthorizationProvider";
+import Link from "next/link"
 
 interface InviteFormProps {
   projectId: string;
+  currentMemeberCount: number
 }
 
-export function InviteForm({ projectId }: InviteFormProps) {
+export function InviteForm({ projectId, currentMemeberCount }: InviteFormProps) {
   const [isPending, startTransition] = useTransition();
+  const { getPermission } = useProjectPermission()
+  const { requireFeature } = useAuthorization()
+  const canInvite = requireFeature('teamInvite', currentMemeberCount)
+  const permit = getPermission()
+
+
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"ADMIN" | "MEMBER">("MEMBER");
 
@@ -51,6 +61,8 @@ export function InviteForm({ projectId }: InviteFormProps) {
       setRole("MEMBER");
     });
   };
+
+  if (!permit.inviteMember) return null
 
   return (
     <Card>
@@ -85,7 +97,7 @@ export function InviteForm({ projectId }: InviteFormProps) {
               </SelectContent>
             </Select>
           </div>
-          <Button
+          {canInvite ? <Button
             type="submit"
             className="w-full hover:bg-emerald-700"
             disabled={isPending}
@@ -102,7 +114,12 @@ export function InviteForm({ projectId }: InviteFormProps) {
                 Send Invitation
               </>
             )}
-          </Button>
+          </Button> : <p className="text-sm text-muted-foreground w-full text-left">
+            Member limit reached.{" "}
+            <Button variant="link" className="p-0 h-auto text-emerald-600" asChild>
+              <Link href="/billing">Upgrade your plan</Link>
+            </Button>
+          </p>}
         </form>
       </CardContent>
     </Card>

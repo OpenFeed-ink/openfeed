@@ -50,7 +50,8 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
     }
 
     if (session?.user.id) {
-      newFeature.authorId = userId
+      newFeature.authorId = session.user.id
+      newFeature.authorName = session.user.name
     } else {
       newFeature.visitorToken = userId
     }
@@ -63,11 +64,11 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
         .onConflictDoUpdate({ target: feature.id, set: newFeature })
         .returning({ id: feature.id })
         .then(res => res[0].id)
-     
-      if(tagIds.length === 0) return;
+
+      if (tagIds.length === 0) return;
 
       const features = tagIds.map(tagId => ({ featureId, tagId }))
-    
+
       await tx.insert(featureTags)
         .values(features)
         .onConflictDoNothing()

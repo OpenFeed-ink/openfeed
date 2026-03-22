@@ -6,17 +6,22 @@ import { cookies } from 'next/headers'
 import { notFound } from "next/navigation";
 import { eq, sql } from "drizzle-orm";
 import { feature } from "@/db/schema";
+import { getServerSession } from "@/lib/server/session";
 
 export default async function page({ params, searchParams }: { params: Promise<{ projectId: string }>, searchParams: Promise<{ theme?: string, page?: string }> }) {
   const { projectId } = await params
-  const { theme = "system", page = "1" } = await searchParams
-  const cookieStore = await cookies()
+  const [{ theme = "system", page = "1" }, session] = await Promise.all([searchParams, getServerSession()])
   const currentPage = Math.max(1, Number.parseInt(page, 10) || 1)
   const pageSize = 15
+  let userId = session?.user.id
+ 
+  if (!userId) {
+    const cookieStore = await cookies()
+    userId = cookieStore.get("visitor_token")?.value
+  }
 
-  const visitorToken = cookieStore.get("visitor_token")?.value
 
-  if (!visitorToken) return notFound()
+  if (!userId) return notFound()
 
   const [features, totalCountResult] = await Promise.all([
     databaseDrizzle.query.feature.findMany({
@@ -28,7 +33,7 @@ export default async function page({ params, searchParams }: { params: Promise<{
         comments: { columns: { id: true } }, // only count for list
         upvotes: {
           where: (u, ops) =>
-            ops.eq(u.voterToken, visitorToken),
+            ops.eq(u.voterToken, userId),
           columns: { id: true },
         },
         tags: { with: { tag: true } },
@@ -60,7 +65,7 @@ export default async function page({ params, searchParams }: { params: Promise<{
               features={features}
               totalPages={totalPages}
               currentPage={currentPage}
-              userId={visitorToken}
+              userId={userId}
               pub={true}
             />
           </div>

@@ -1,19 +1,36 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useCallback, useContext } from "react";
 import type { Permission } from "@/lib/permission/types";
+import { Membership } from "@/type";
+import { PERMISSIONS } from "@/lib/permission/config";
 
-const ProjectPermissionContext = createContext<Permission | null>(null);
+type userPermission = {
+  getUserRole: (userId: string) => Membership,
+  getPermission: () => Permission
+}
+
+const ProjectPermissionContext = createContext<userPermission | null>(null);
 
 export function ProjectPermissionProvider({
-  value,
   children,
+  memeberships,
+  userId,
 }: {
-  value: Permission;
+  userId: string
+  memeberships: Membership[];
   children: React.ReactNode;
 }) {
+
+  const getUserRole = (userId: string) => memeberships.find(f => f.userId === userId) ?? { userId, role: "ANONYMOUS" }
+
+  const getPermission = useCallback(() => {
+    const { role } = getUserRole(userId)
+    return PERMISSIONS[role]
+  }, [userId])
+
   return (
-    <ProjectPermissionContext.Provider value={value}>
+    <ProjectPermissionContext.Provider value={{getUserRole, getPermission}}>
       {children}
     </ProjectPermissionContext.Provider>
   );

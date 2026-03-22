@@ -15,4 +15,6 @@ export type Permission = {
   addNewChangelog: boolean;
   editChangelog: boolean;
   deleteChangelog: boolean;
+  inviteMember:boolean;
+  removeMember:boolean;
 };

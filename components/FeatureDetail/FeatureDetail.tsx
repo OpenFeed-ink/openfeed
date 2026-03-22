@@ -13,9 +13,11 @@ import { DeleteFeature } from "../DeleteFeature/DeleteFeature";
 import { Badge } from "@/components/ui/badge";
 import { FormatDistanceToNow } from "../FromatDistanceToNow/FormatDistanceToNow";
 import { NoFeatureRequest } from "./NoFeatureRequest";
+import { CommentsContainer } from "./CommentsContainer";
 
-export async function FeatureDetail({ featureId, user }: {
+export async function FeatureDetail({ featureId, user, projectId }: {
   featureId: string,
+  projectId:string,
   user: Author,
 }) {
   const featureData = await databaseDrizzle.query.feature.findFirst({
@@ -28,20 +30,14 @@ export async function FeatureDetail({ featureId, user }: {
         },
         with: {
           usersProjects: {
-            where: (up, ops) => ops.eq(up.projectId, feature.projectId),
-            columns: { role: true },
-          },
-        },
+            where: (up, ops) => ops.eq(up.projectId, projectId),
+            columns: { role: true, userId: true },
+          }
+        }
       },
       comments: {
         with: {
           author: {
-            with: {
-              usersProjects: {
-                where: (up, ops) => ops.eq(up.projectId, feature.projectId),
-                columns: { role: true },
-              }
-            },
             columns: {
               id: true,
               name: true,
@@ -60,10 +56,9 @@ export async function FeatureDetail({ featureId, user }: {
   });
 
   if (!featureData) return <NoFeatureRequest />
-
   const commentsTree = buildCommentTree(featureData.comments, featureData.pinnedComment)
-  const authorRole =
-    featureData.author?.usersProjects?.[0]?.role ?? "ANONYMOUS";
+  const authorRole = featureData.author?.usersProjects[0]?.role ?? "ANONYMOUS";
+
   return (
     <Card className={"w-full"}>
       <CardHeader className="pb-4">
@@ -149,8 +144,7 @@ export async function FeatureDetail({ featureId, user }: {
           <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
             Comments ({featureData.comments.length})
           </h3>
-
-          <div className="max-h-112.5 min-h-112.5 overflow-y-auto">
+          <CommentsContainer>
             <div className="overflow-x-auto pb-2">
               <div className="space-y-4 w-max">
                 {commentsTree.length === 0 ? (
@@ -172,7 +166,7 @@ export async function FeatureDetail({ featureId, user }: {
                 )}
               </div>
             </div>
-          </div>
+          </CommentsContainer>
           <AddComments
             featureId={featureData.id}
             projectId={featureData.projectId}

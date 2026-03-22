@@ -4,8 +4,8 @@ import { Authorization, Plan } from "./types";
 export const authorization: Record<Plan, Authorization> = {
   FREE: {
     project: 1,
-    teamInvite: 1,
-    featureRequest: 5,
+    teamInvite: 5,
+    featureRequest: 500,
     productAdvisor: 1,
   },
   STARTER: {

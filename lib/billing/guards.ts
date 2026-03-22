@@ -1,5 +1,5 @@
 // lib/billing/guards.ts
-import { getAuthorization } from "./getAuthorization";
+import { getAuthorizationWithProject } from "./getAuthorization";
 import { Feature } from "./types";
 
 export async function requireFeature(
@@ -7,7 +7,7 @@ export async function requireFeature(
   feature: Feature,
   used: number
 ) {
-  const auth = await getAuthorization(userId);
+  const auth = await getAuthorizationWithProject(userId);
 
   const limit = auth.limits[feature];
 

@@ -34,8 +34,6 @@ export default async function page({ params, searchParams }: { params: Promise<{
         <div className="space-y-4 py-2 w-full max-w-3xl mx-auto">
           <ChangelogList
             entries={logs}
-            canEdit={false}
-            canDelete={false}
             userId=""
           />
         </div>

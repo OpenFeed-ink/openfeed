@@ -11,29 +11,32 @@ import {
 } from "@/components/ui/table";
 import { RemoveMembers } from "../RemoveMembers/RemoveMembers";
 
-interface Member {
-  userId: string;
-  role: "ADMIN" | "MEMBER";
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
-    image: string | null;
-  };
+type ProjectMemeber = {
+  ownerId: string;
+  usersProjects: {
+    role: "ADMIN" | "MEMBER";
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      image: string | null;
+    };
+  }[];
 }
 
 interface TeamMembersProps {
-  members: Member[];
-  currentUserId: string;
-  isAdmin: boolean;
+  projectMemeber: ProjectMemeber;
   projectId: string;
+  userRole: "ADMIN" | "MEMBER" | "OWNER";
+  currentUserId: string
 }
 
-export function TeamMembers({ members, currentUserId, isAdmin, projectId }: TeamMembersProps) {
+export function TeamMembers({ projectId, projectMemeber, userRole, currentUserId }: TeamMembersProps) {
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Team Members ({members.length})</CardTitle>
+        <CardTitle>Team Members ({projectMemeber.usersProjects.length})</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
@@ -41,16 +44,16 @@ export function TeamMembers({ members, currentUserId, isAdmin, projectId }: Team
             <TableRow>
               <TableHead>User</TableHead>
               <TableHead>Role</TableHead>
-              {isAdmin && <TableHead className="w-25">Actions</TableHead>}
+              {userRole !== 'MEMBER' && <TableHead className="w-25">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {members.map((member) => {
-              const isCurrentUser = member.userId === currentUserId;
-              const canRemove = isAdmin && member.role !== "ADMIN" && !isCurrentUser;
-
+            {projectMemeber.usersProjects.map((member) => {
+              const isCurrentUser = member.user.id === currentUserId;
+              const canRemove = (member.role !== "ADMIN" && !isCurrentUser) || (userRole === 'OWNER' && !isCurrentUser);
+              const isOwner = projectMemeber.ownerId === member.user.id
               return (
-                <TableRow key={member.userId}>
+                <TableRow key={member.user.id}>
                   <TableCell className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={member.user.image ?? undefined} />
@@ -66,17 +69,17 @@ export function TeamMembers({ members, currentUserId, isAdmin, projectId }: Team
                   <TableCell>
                     <Badge
                       variant={member.role === "ADMIN" ? "default" : "outline"}
-                      className={member.role === "ADMIN" ? "bg-emerald-600 capitalize" : "capitalize"}
+                      className={isOwner ? "bg-emerald-600 capitalize" : member.role === "ADMIN" ? "bg-emerald-200 capitalize" : "capitalize"}
                     >
-                      {member.role.toLowerCase()}
+                      {isOwner ? "owner" : member.role.toLowerCase()}
                     </Badge>
                   </TableCell>
-                  {isAdmin && (
+                  {userRole !== 'MEMBER' && (
                     <TableCell>
                       {canRemove && (
                         <RemoveMembers
                           projectId={projectId}
-                          userId={member.userId}
+                          userId={member.user.id}
                           userName={member.user.name || member.user.email}
                         />
                       )}

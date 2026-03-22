@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 import { toast } from "sonner";
-import { Author, CommentNode } from "@/type"
+import { Author, CommentNode} from "@/type"
 import { pinCommentAction } from "@/actions/comments";
 import { EMPTY_FORM_STATE } from "@/lib/zodErrorHandle";
 
@@ -20,7 +20,6 @@ type CommentContextType = {
   setReplyingTo: (id: string | null) => void;
 
   pinCommentId: string | null
-
   pinComment: (commentId: string, pin: boolean) => Promise<void>;
 };
 

@@ -33,8 +33,8 @@ const configSchema = z.object({
     dismiss: z.boolean(),
     bgcolor: z.string(),
     textcolor: z.string(),
+    actionBtn: z.string(),
   }).optional().nullable()
-
 })
 
 export async function saveWidgetConfigAction(_: FormState, formData: FormData) {
@@ -47,16 +47,11 @@ export async function saveWidgetConfigAction(_: FormState, formData: FormData) {
       projectId: projectId as string,
       widgetName: conf.widgetName,
       info: conf.info,
-      triggerBtn_position: conf.triggerBtn.position,
-      triggerBtn_icon: conf.triggerBtn.icon,
-      triggerBtn_color: conf.triggerBtn.color,
-      triggerBtn_textColor: conf.triggerBtn.textColor,
-      triggerBtn_size: conf.triggerBtn.size,
-      triggerBtn_text: conf.triggerBtn.text,
+      triggerBtn: conf.triggerBtn,
       showRoadmap: conf.showRoadmap,
       showFeedback: conf.showFeedback,
       showChangeLog: conf.showChangeLog,
-      announcement: conf.announcement ?? null,
+      announcement: conf.announcement ?? null
     }
 
     await databaseDrizzle.insert(widgetConfig)

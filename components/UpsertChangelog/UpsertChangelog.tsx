@@ -37,8 +37,8 @@ type UpsertChangelogProps = {
   setOpenEditChangelogAction?: (open: boolean) => void,
 }
 export function UpsertChangelog(props: UpsertChangelogProps) {
-  const permit = useProjectPermission();
-
+  const { getPermission } = useProjectPermission();
+  const permit = getPermission()
   const isOwner = props.editingEntry?.user?.id === props.userId;
 
   const canEdit = props.editingEntry && (isOwner || permit.editChangelog);

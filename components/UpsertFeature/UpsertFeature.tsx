@@ -65,8 +65,8 @@ export function UpsertFeature({
   userName,
   projectFeatureCount,
 }: UpsertFeatureProps) {
-  const permit = useProjectPermission();
-
+  const { getPermission } = useProjectPermission();
+  const permit = getPermission()
   const isOwner = feature?.authorId === userId;
 
   const canEdit = feature && (isOwner || permit.editFeature);
