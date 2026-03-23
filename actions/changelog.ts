@@ -8,13 +8,12 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { getServerSession } from "../lib/server/session";
 
 
 export async function upsertChangeLogAction(_: FormState, formData: FormData) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    const session = await getServerSession()
     if (!session?.user?.id) throw new Error("forbidden");
 
     const newChangelog = z.object({

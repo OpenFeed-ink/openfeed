@@ -1,6 +1,8 @@
 "use server";
 import { databaseDrizzle } from "@/db";
 import { widgetConfig } from "@/db/schema";
+import { getProjectUserPermission } from "@/lib/permission/getProjectPermission";
+import { getServerSession } from "@/lib/server/session";
 import { fromErrorToFormState, FormState, toFormState } from "@/lib/zodErrorHandle";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -39,12 +41,23 @@ const configSchema = z.object({
 
 export async function saveWidgetConfigAction(_: FormState, formData: FormData) {
   try {
-    const config = formData.get("config")
-    const projectId = formData.get("projectId")
-    const conf = configSchema.parse(JSON.parse(config as string ?? "{}"))
+    const session = await getServerSession()
+    if (!session?.user.id) throw new Error("Unauthorized");
+
+    const { projectId, conf } = z.object({
+      projectId: z.string().min(5),
+      conf: configSchema
+    }).parse({
+      projectId: formData.get("projectId"),
+      conf: JSON.parse(formData.get("config") as string ?? "{}")
+    })
+
+    const { role } = await getProjectUserPermission(session.user.id, projectId)
+    if (role === 'anonymous') throw new Error("you don't have permission to update widget config")
+
     const newConfig: typeof widgetConfig.$inferSelect = {
       theme: conf.theme,
-      projectId: projectId as string,
+      projectId: projectId,
       widgetName: conf.widgetName,
       info: conf.info,
       triggerBtn: conf.triggerBtn,

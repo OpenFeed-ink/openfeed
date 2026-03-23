@@ -4,6 +4,6 @@ export type Feature =
   | "project"
   | "teamInvite"
   | "featureRequest"
-  | "productAdvisor";
+  | "productAdvisor_tokens";
 
 export type Authorization = Record<Feature, number>;

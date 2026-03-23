@@ -84,6 +84,7 @@ export const project = pgTable("project", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   description: text("description"),
+  tokensUsed: integer("tokens_used").default(0).notNull(),
   roadmapHiddenColumns: text("roadmap_hidden_columns").array().default([]).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 })

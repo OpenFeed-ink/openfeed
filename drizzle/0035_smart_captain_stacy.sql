@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "tokens_used" integer DEFAULT 0;

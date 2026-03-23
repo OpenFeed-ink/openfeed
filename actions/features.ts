@@ -6,9 +6,12 @@ import { fromErrorToFormState, FormState, toFormState } from "@/lib/zodErrorHand
 import { z } from "zod";
 import { headers } from "next/headers";
 import { revalidatePath } from 'next/cache';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, count } from 'drizzle-orm';
 import { SimilarFeature } from "@/type";
 import { smartRankedQuery } from "@/db/utils";
+import { getServerSession } from "@/lib/server/session";
+import { getAuthorizationWithProject } from "@/lib/billing/getAuthorization";
+import { getProjectUserPermission } from "@/lib/permission/getProjectPermission";
 
 
 const ProjectData = z.object({
@@ -22,12 +25,9 @@ const ProjectData = z.object({
   status: z.enum(["under_review", "planned", "in_progress", "done", "closed"]),
 })
 
-
 export async function upsertFeaturesAction(_: FormState, formData: FormData) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    const session = await getServerSession()
 
     const { id, projectId, title, description, status, tagIds, userName, userId } = ProjectData.parse({
       id: formData.get("id"),
@@ -39,6 +39,12 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
       userId: formData.get("userId"),
       userName: formData.get("userName"),
     })
+   
+    if (id) {
+      await canUpdateFeature(session?.user.id ?? userId, id)
+    } else {
+      await canCreateFeature(projectId)
+    }
 
     const newFeature: typeof feature.$inferInsert = {
       id: id ?? undefined,
@@ -81,7 +87,6 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
   }
 }
 
-
 export async function checkFeatureSimilar(
   _: FormState,
   formData: FormData
@@ -123,6 +128,9 @@ export async function deleteFeatureAction(_: FormState, formData: FormData) {
       headers: await headers(),
     });
     if (!session?.user?.id) throw new Error("forbidden");
+    //todo all vistor to delete owen feature 
+
+    await canDeleteFeature(session.user.id, id, projectId)
 
     await databaseDrizzle.
       delete(feature).
@@ -151,6 +159,9 @@ export async function updateFeatureStatus(_: FormState, formData: FormData) {
       newStatus: formData.get("newStatus"),
       projectId: formData.get("projectId")
     })
+
+    await canUpdateFeature(session.user.id, featureId)
+ 
     await databaseDrizzle
       .update(feature)
       .set({ status: newStatus })
@@ -161,4 +172,79 @@ export async function updateFeatureStatus(_: FormState, formData: FormData) {
   } catch (e) {
     return fromErrorToFormState(e);
   }
+}
+
+
+async function canCreateFeature(projectId: string) {
+  const { limits } = await getAuthorizationWithProject(projectId)
+
+  const used = await databaseDrizzle
+    .select({ count: count() })
+    .from(feature)
+    .where(eq(feature.projectId, projectId))
+    .then(proj => proj[0].count)
+
+  const limit = limits['featureRequest']
+
+  if (used >= limit) {
+    throw new Error(
+      `Limit reached for creating new feature. Upgrade your plan.`
+    );
+  }
+  return true;
+}
+
+async function canUpdateFeature(userId: string, featureId: string) {
+  const feature = await databaseDrizzle.query.feature.findFirst({
+    where: (f, ops) => ops.eq(f.id, featureId),
+    columns: {
+      projectId: true,
+      authorId: true,
+      visitorToken: true
+    }
+  })
+  if (!feature) throw new Error("feature not found")
+  const premit = await getProjectUserPermission(userId, feature.projectId)
+  if (premit.role === 'anonymous' && feature.visitorToken === userId) return true
+  if (feature.authorId === userId) return true;
+
+  throw new Error(
+    `You do not have permission to update this feature request`
+  );
+}
+
+async function canDeleteFeature(userId: string, featureId: string, projectId: string) {
+  const feature = await databaseDrizzle.query.feature.findFirst({
+    where: (f, ops) => ops.and(ops.eq(f.id, featureId), ops.eq(f.projectId, projectId)),
+    columns: {
+      projectId: true,
+      authorId: true,
+      visitorToken: true
+    },
+    with: {
+      author: {
+        with: {
+          usersProjects: {
+            where: (up, ops) => ops.eq(up.projectId, projectId),
+            columns: {
+              role: true
+            }
+          }
+        }
+      }
+    }
+  })
+
+  if (!feature) throw new Error("feature not found")
+  const authorRole = feature.author?.usersProjects[0].role ?? "ANONYMOUS";
+
+  const permit = await getProjectUserPermission(userId, feature.projectId)
+
+  const isOwner = feature.authorId === userId && feature.authorId !== null;
+  const isMemeberFeature = feature.authorId != null && authorRole !== 'ANONYMOUS'
+  if (!isOwner && (isMemeberFeature || !permit.deleteAnyFeature)) throw new Error(
+    `You do not have permission to delete this feature request`
+  );
+
+  return true
 }

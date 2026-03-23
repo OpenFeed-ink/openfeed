@@ -8,8 +8,7 @@ const TRIAL_DAYS = 7;
 export async function getAuthorizationWithProject(projectId: string) {
   const project = await databaseDrizzle.query.project.findFirst({
     where: (u, ops) => ops.eq(u.id, projectId),
-    columns: {
-    },
+    columns: {},
     with: {
       owner: {
         columns: {
@@ -37,7 +36,7 @@ export async function getAuthorizationWithUser(userId: string) {
   return getAuthorization(user)
 }
 
-const getAuthorization = (user: { plan: Plan, createdAt: Date }) => {
+export const getAuthorization = (user: { plan: Plan, createdAt: Date }) => {
   const now = new Date();
   const diffTime = now.getTime() - new Date(user.createdAt).getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));

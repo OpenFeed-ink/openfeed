@@ -6,6 +6,7 @@ import { fromErrorToFormState, FormState, toFormState } from "@/lib/zodErrorHand
 import { z } from "zod";
 import { headers } from "next/headers";
 import { revalidatePath } from 'next/cache';
+import { getProjectUserPermission } from "@/lib/permission/getProjectPermission";
 
 
 const TagData = z.object({
@@ -29,13 +30,17 @@ export async function upsertTagAction(_: FormState, formData: FormData) {
       headers: await headers(),
     });
 
+
     if (!session?.user?.id) throw new Error("forbidden");
+
+    const { role } = await getProjectUserPermission(session.user.id, projectId)
+    if (role === 'anonymous') throw new Error("you don't have permission to create or update tags")
 
     const newTag: typeof tag.$inferInsert = {
       id: id ?? undefined,
       projectId: projectId,
-      name:name,
-      color:color
+      name: name,
+      color: color
     }
     await databaseDrizzle
       .insert(tag)

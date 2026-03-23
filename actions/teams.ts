@@ -11,6 +11,8 @@ import { randomBytes } from "crypto";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { getServerSession } from "@/lib/server/session";
+import { getAuthorizationWithProject } from "@/lib/billing/getAuthorization";
 
 
 export async function inviteMemberAction(formData: FormData) {
@@ -27,14 +29,7 @@ export async function inviteMemberAction(formData: FormData) {
       role: formData.get("role"),
     })
 
-    const membership = await databaseDrizzle.query.usersProjects.findFirst({
-      where: and(
-        eq(usersProjects.projectId, projectId),
-        eq(usersProjects.userId, session.user.id),
-        eq(usersProjects.role, "ADMIN")
-      ),
-    });
-    if (!membership) throw new Error("You must be an admin to invite members");
+   await canInviteMember(projectId,session.user.id)
 
     // Get project name and inviter name
     const proj = await databaseDrizzle.query.project.findFirst({
@@ -103,6 +98,9 @@ export async function inviteMemberAction(formData: FormData) {
 
 export async function removememberAction(formData: FormData) {
   try {
+    const session = await getServerSession()
+    if (!session?.user.id) throw new Error("Unauthorized");
+
     const { projectId, userId } = z.object({
       projectId: z.string().min(4),
       userId: z.string().min(4),
@@ -110,6 +108,17 @@ export async function removememberAction(formData: FormData) {
       projectId: formData.get("projectId"),
       userId: formData.get("userId")
     })
+
+    const membership = await databaseDrizzle.query.usersProjects.findFirst({
+      where: and(
+        eq(usersProjects.projectId, projectId),
+        eq(usersProjects.userId, session.user.id),
+        eq(usersProjects.role, "ADMIN")
+      ),
+    });
+
+    if (!membership) throw new Error("You must be an admin to remove members");
+
     await databaseDrizzle.delete(usersProjects)
       .where(
         and(
@@ -122,4 +131,23 @@ export async function removememberAction(formData: FormData) {
   } catch (e) {
     return fromErrorToFormState(e);
   }
+}
+
+const canInviteMember = async (projectId: string, userId: string) => {
+  const membership = await databaseDrizzle.query.usersProjects.findMany({
+    where: eq(usersProjects.projectId, projectId),
+    columns: { role: true, userId: true }
+  });
+
+  const isAdmin = membership.find(m => m.userId === userId && m.role === 'ADMIN')
+  if (!isAdmin) throw new Error("You must be an admin to invite members");
+
+  const { limits } = await getAuthorizationWithProject(projectId)
+  if (membership.length >= limits['teamInvite']) {
+    throw new Error(
+      `Limit reached for inviting new member. Upgrade your plan.`
+    );
+  }
+
+  return true
 }

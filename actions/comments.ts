@@ -34,7 +34,7 @@ export async function upsertCommentAction(_: FormState, formData: FormData) {
       userId: formData.get("userId"),
       name: formData.get("name"),
     })
-
+    // todo : update comment
 
     const newComment: typeof comment.$inferInsert = {
       id: id ?? undefined,
@@ -43,7 +43,6 @@ export async function upsertCommentAction(_: FormState, formData: FormData) {
       featureId: featureId,
       parentId: parentId
     }
-
 
     if (session?.user.id) {
       newComment.authorId = userId
