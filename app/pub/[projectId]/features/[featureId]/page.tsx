@@ -60,8 +60,10 @@ export default async function page({ params, searchParams }: { params: Promise<{
         }}
       >
         <FeatureDetail
+          projectId={projectId}
           user={user}
           featureId={featureId}
+          pub={true}
         />
       </UpvoteProvider>
     </ThemeController>

@@ -4,9 +4,10 @@ import { comment, feature } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { fromErrorToFormState, FormState, toFormState } from "@/lib/zodErrorHandle";
 import { z } from "zod";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { revalidatePath } from 'next/cache';
 import { and, eq } from 'drizzle-orm';
+import { getProjectUserPermission } from "@/lib/permission/getProjectPermission";
 
 
 const CommentData = z.object({
@@ -79,7 +80,16 @@ export async function deleteCommentAction(_: FormState, formData: FormData) {
     const session = await auth.api.getSession({
       headers: await headers(),
     });
-    if (!session?.user?.id) throw new Error("forbidden");
+
+    let userId = session?.user.id
+    if (!userId) {
+      const cookieStore = await cookies()
+      userId = cookieStore.get("visitor_token")?.value
+    }
+
+    if (!userId) throw new Error("forbidden");
+
+    await canDeleteComment(id, projectId, userId)
 
     await databaseDrizzle.
       delete(comment).
@@ -97,6 +107,11 @@ export async function deleteCommentAction(_: FormState, formData: FormData) {
 
 export async function pinCommentAction(_: FormState, formData: FormData) {
   try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session?.user.id) throw new Error("forbidden");
+
     const { id, featureId, projectId } = z.object({
       id: z.string().min(5).nullable(),
       featureId: z.string().min(5),
@@ -106,6 +121,9 @@ export async function pinCommentAction(_: FormState, formData: FormData) {
       featureId: formData.get("featureId"),
       projectId: formData.get("projectId"),
     })
+
+    const permit = await getProjectUserPermission(session.user.id, projectId)
+    if (!permit.canPin) throw new Error("you don't have permission to pin comments in this project")
 
     await databaseDrizzle
       .update(feature)
@@ -118,4 +136,41 @@ export async function pinCommentAction(_: FormState, formData: FormData) {
   } catch (e) {
     return fromErrorToFormState(e);
   }
+}
+
+const canDeleteComment = async (commentId: string, projectId: string, userId: string) => {
+
+  const currentComment = await databaseDrizzle.query.comment.findFirst({
+    where: (c, ops) => ops.eq(c.id, commentId),
+    columns: {
+      authorId: true,
+      visitorToken: true,
+    },
+    with: {
+      author: {
+        with: {
+          usersProjects: {
+            where: (up, ops) => ops.eq(up.projectId, projectId),
+            columns: {
+              role: true
+            }
+          }
+        }
+      }
+    }
+
+  })
+
+  if (!currentComment) throw new Error("comment not found")
+  const authorRole = currentComment.author?.usersProjects[0].role ?? "ANONYMOUS";
+
+  const permit = await getProjectUserPermission(userId, projectId)
+
+  const isOwner = currentComment.authorId === userId || currentComment.visitorToken === userId;
+  const isMemeberFeature = currentComment.authorId != null && authorRole !== 'ANONYMOUS'
+  if (!isOwner && (isMemeberFeature || !permit.deleteComment)) throw new Error(
+    `You do not have permission to delete this comment`
+  );
+
+  return true
 }

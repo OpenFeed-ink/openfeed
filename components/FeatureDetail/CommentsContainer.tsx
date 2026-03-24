@@ -11,7 +11,7 @@ export function CommentsContainer({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div ref={ref} className="max-h-112.5 min-h-112.5 overflow-y-auto">
+    <div ref={ref} className="max-h-112.5 overflow-y-auto">
       {children}
     </div>
   );

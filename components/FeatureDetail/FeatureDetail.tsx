@@ -15,10 +15,11 @@ import { FormatDistanceToNow } from "../FromatDistanceToNow/FormatDistanceToNow"
 import { NoFeatureRequest } from "./NoFeatureRequest";
 import { CommentsContainer } from "./CommentsContainer";
 
-export async function FeatureDetail({ featureId, user, projectId }: {
+export async function FeatureDetail({ featureId, user, projectId, pub }: {
   featureId: string,
   projectId:string,
   user: Author,
+  pub?:boolean
 }) {
   const featureData = await databaseDrizzle.query.feature.findFirst({
     where: eq(feature.id, featureId),
@@ -60,7 +61,7 @@ export async function FeatureDetail({ featureId, user, projectId }: {
   const authorRole = featureData.author?.usersProjects[0]?.role ?? "ANONYMOUS";
 
   return (
-    <Card className={"w-full"}>
+    <Card className={`w-full ${!pub ? "h-full": ""}`}>
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
           {/* Prominent upvote button */}
