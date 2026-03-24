@@ -262,16 +262,9 @@ export function SignupForm({ callbackUrl }: { callbackUrl?: string }) {
           >
             By signing up, you agree to our{" "}
             <Link
-              href={callbackUrl ? `/terms?callbackUrl=${callbackUrl}` : "/terms"}
+              href={callbackUrl ? `/terms_of_service_and_privacy_policy?callbackUrl=${callbackUrl}` : "/terms_of_service_and_privacy_policy"}
               className="underline underline-offset-4 hover:text-teal-600">
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link
-              href={callbackUrl ? `/privacy?callbackUrl=${callbackUrl}` : "/privacy"}
-              className="underline underline-offset-4 hover:text-teal-600"
-            >
-              Privacy Policy
+              Terms of Service & Privacy Policy
             </Link>.
           </motion.p>
         </CardFooter>

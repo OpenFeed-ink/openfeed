@@ -3,6 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
+  images: {
+    remotePatterns:[{
+      protocol: "https",
+      hostname: "img.shields.io"
+    }], 
+  },
   experimental: {
     optimizePackageImports: [
       "lucide-react",

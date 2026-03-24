@@ -32,9 +32,10 @@ export type ChangelogEntry = {
 interface ChangelogListProps {
   entries: ChangelogEntry[],
   userId: string,
+  keepOpen?: boolean
 }
 
-export function ChangelogList({ entries, userId }: ChangelogListProps) {
+export function ChangelogList({ entries, userId, keepOpen }: ChangelogListProps) {
   if (entries.length === 0) {
     return (
       <Card className="p-12 text-center">
@@ -48,7 +49,9 @@ export function ChangelogList({ entries, userId }: ChangelogListProps) {
   }
 
   return (
-    <Accordion type="multiple" className="space-y-4">
+    <Accordion type="multiple" className="space-y-4"
+      value={keepOpen ? [entries[0].id] : undefined}
+    >
       {entries.map((entry) => {
         const config = categoryConfig[entry.category] || categoryConfig.new_feature
         const Icon = config.icon
@@ -72,10 +75,10 @@ export function ChangelogList({ entries, userId }: ChangelogListProps) {
                 </div>
               </AccordionTrigger>
               {/* Edit Button */}
-              <ChangelogActions
+              {userId && <ChangelogActions
                 entry={entry}
                 userId={userId}
-              />
+              />}
             </div>
 
             <AccordionContent className="px-4 pb-6 pt-2 max-h-[75vh] overflow-auto">
@@ -100,9 +103,9 @@ export function ChangelogList({ entries, userId }: ChangelogListProps) {
                   <span className="text-sm text-muted-foreground">Anonymous</span>
                 )}
                 <time className="text-xs text-muted-foreground" dateTime={entry.createdAt.toString()}>
-                  <FormatDistanceToNow createdAt={entry.createdAt}/>
+                  <FormatDistanceToNow createdAt={entry.createdAt} />
                 </time>
-              
+
               </div>
 
               {/* Changelog content */}

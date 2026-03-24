@@ -1,14 +1,10 @@
-import { Card, CardDescription, CardFooter, CardTitle } from "@/components/ui/card";
 import { databaseDrizzle } from "@/db";
 import { project } from "@/db/schema";
 import { statusColors, statusLabels } from "@/type";
 import { eq } from "drizzle-orm";
-import { Badge } from "@/components/ui/badge";
 import { notFound } from "next/navigation";
-import { MessageSquare, ThumbsUp } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { FeatureHeaderCard } from "@/components/Pub/FeatureCard";
 import ThemeController from "@/components/ThemeController";
+import { PubFeatureCard } from "@/components/Pub/PubFeatureCard";
 type FeatureStatus =
   | "under_review"
   | "planned"
@@ -83,61 +79,7 @@ export default async function page({ params, searchParams }: { params: Promise<{
             </div>
             <div className="space-y-2">
               {featuresByStatus[status.value as FeatureStatus].map((feature) => (
-                <Card key={feature.id} className="hover:border-teal-500/40 hover:shadow-sm transition">
-                  <FeatureHeaderCard featureId={feature.id}>
-                    <div className="flex justify-between">
-                      <CardTitle className="text-sm line-clamp-1">
-                        {feature.title}
-                      </CardTitle>
-                      <Badge className={statusColors[feature.status]}>
-                        {statusLabels[feature.status]}
-                      </Badge>
-                    </div>
-                    {feature.description && (
-                      <CardDescription className="text-xs line-clamp-2">
-                        {feature.description}
-                      </CardDescription>
-                    )}
-                    {feature.tags?.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {feature.tags.map(({ tag }) => (
-                          <Badge
-                            key={tag.id}
-                            variant="outline"
-                            className="text-[10px] px-1 py-0"
-                            style={{ borderColor: tag.color }}
-                          >
-                            <div
-                              className="h-1 w-1 rounded-full mr-1"
-                              style={{ backgroundColor: tag.color }}
-                            />
-                            {tag.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </FeatureHeaderCard>
-                  <CardFooter className="p-4 pt-2 text-xs text-muted-foreground">
-                    <div className="flex justify-between w-full">
-                      <div className="flex gap-3">
-                        <span className="flex gap-1 items-center">
-                          {feature.upvotesCount || 0}
-                          <ThumbsUp className="h-3 w-3" />
-                        </span>
-                        <span className="flex gap-1 items-center">
-                          <MessageSquare className="h-3 w-3" />
-                          {feature.comments.length || 0}
-                        </span>
-                      </div>
-                      <span>
-                        {formatDistanceToNow(
-                          new Date(feature.createdAt),
-                          { addSuffix: true }
-                        )}
-                      </span>
-                    </div>
-                  </CardFooter>
-                </Card>
+                <PubFeatureCard key={feature.id} feature={feature} />
               ))}
 
               {featuresByStatus[status.value as FeatureStatus].length === 0 && (
