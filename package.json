@@ -1,6 +1,14 @@
 {
   "name": "openfeed",
+  "description": "Collect feedback, manage your roadmap, and publish changelog updates — all through one embeddable widget. Install once, control everything from your dashboard.",
+  "author": {
+    "name": "Ali Amer",
+    "email": "aliamer19ali@gmail.com",
+    "url": "https://openfeed.ink"
+  },
   "version": "0.1.0",
+  "license": "AGPL-3.0-only",
+  "homepage": "https://openfeed.ink",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -17,6 +25,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@emailjs/browser": "^4.4.1",
     "@faker-js/faker": "^10.3.0",
     "@hookform/resolvers": "^5.2.2",
     "@react-email/components": "^1.0.8",
@@ -59,7 +68,6 @@
     "shadcn": "^3.8.5",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
-    "tiktoken": "^1.0.22",
     "use-debounce": "^10.1.0"
   },
   "devDependencies": {

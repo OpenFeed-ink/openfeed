@@ -20,6 +20,7 @@ export const auth = betterAuth({
       plan: {
         type: "string",
         required: true,
+        defaultValue: process.env.ENV === "OS" ? "OS" : "FREE"
       }
     }
   },
@@ -34,6 +35,7 @@ export const auth = betterAuth({
           name: profile.name,
           email: profile.email,
           image: profile.picture,
+          plan: process.env.ENV === "OS" ? "OS" : "FREE"
         }
       }
     },
@@ -46,6 +48,7 @@ export const auth = betterAuth({
           name: profile.name,
           email: profile.email,
           image: profile.avatar_url,
+          plan: process.env.ENV === "OS" ? "OS" : "FREE"
         }
       }
     }

@@ -4,11 +4,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   images: {
-    remotePatterns:[{
+    remotePatterns: [{
       protocol: "https",
       hostname: "img.shields.io"
-    }], 
+    }],
   },
+  output: "standalone",
   experimental: {
     optimizePackageImports: [
       "lucide-react",

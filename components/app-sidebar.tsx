@@ -54,7 +54,7 @@ export function AppSidebar({ userProject, allProjects, user }: {
     navSecondary: [
       {
         title: "Support",
-        url: "/support",
+        url: "/contact",
         icon: (
           <LifeBuoyIcon
           />

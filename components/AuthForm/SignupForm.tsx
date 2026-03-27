@@ -49,7 +49,7 @@ const signupSchema = z.object({
 
 type SignupValues = z.infer<typeof signupSchema>;
 
-export function SignupForm({ callbackUrl }: { callbackUrl?: string }) {
+export function SignupForm({ callbackUrl, plan }: { callbackUrl?: string, plan:string }) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -72,6 +72,7 @@ export function SignupForm({ callbackUrl }: { callbackUrl?: string }) {
         email: data.email,
         password: data.password,
         name: data.name!,
+        plan: plan 
       });
       if (error) {
         toast.error(error.message || "unkown error")
