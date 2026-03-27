@@ -24,12 +24,7 @@ COPY docker-entrypoint.sh /usr/local/bin/
 # Make sure the entrypoint script is executable
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-RUN set -a && \
-    [ -f .env ] && . .env; \ 
-    npm run build
-
-# Make sure the entrypoint script is executable
-COPY .env .next/standalone/.env
+RUN npm run build
 
 RUN cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/
 
