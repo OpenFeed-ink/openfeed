@@ -34,6 +34,10 @@ ENV NODE_ENV=production
 ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
 
+ENV OPENAI_API_KEY=dummy
+ENV BETTER_AUTH_SECRET=dummy
+ENV REDIS_URL=redis://localhost:6379
+
 # Create non-root user for running the app
 RUN addgroup --system --gid 1001 nodejs && \
   adduser --system --uid 1001 nextjs
