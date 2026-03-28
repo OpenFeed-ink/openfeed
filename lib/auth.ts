@@ -1,10 +1,11 @@
-import { betterAuth, GithubProfile } from "better-auth";
+import { betterAuth, GithubProfile} from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import * as schema from "@/db/schema";
 import { databaseDrizzle } from "@/db";
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  secret: process.env.BETTER_AUTH_SECRET || "LcxHVZhLegggYscFzGrQbHuzUujRX6CS", 
   database: drizzleAdapter(databaseDrizzle, {
     provider: "pg",
     schema: {

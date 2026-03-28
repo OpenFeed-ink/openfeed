@@ -4,7 +4,7 @@ import { toolDefinitions, executeTool } from "./product-advisor-tools"
 
 const client = new OpenAI({
   baseURL: process.env.OPENAI_ENDPOINT!,
-  apiKey: process.env.OPENAI_KEY!,
+  apiKey: process.env.OPENAI_KEY || "OPENAI_KEY",
 })
 
 // Max tool call rounds to prevent infinite loops
