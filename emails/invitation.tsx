@@ -31,9 +31,7 @@ export const InvitationEmail = ({
   email,
 }: InvitationEmailProps) => {
   const previewText = `Join ${projectName} on OpenFeed`;
-  const baseUrl = process.env.BETTER_AUTH_URL
-    ? `https://${process.env.BETTER_AUTH_URL}`
-    : '';
+
   return (
     <Html>
       <Head />
@@ -46,7 +44,7 @@ export const InvitationEmail = ({
             {/* Header with logo */}
             <Section className="text-center mb-8">
               <Img
-                src={`${baseUrl}/static/openfeed.png`}
+                src={`${process.env.BETTER_AUTH_URL}/openfeed.png`}
                 alt="OpenFeed"
                 width="70"
                 height="70"

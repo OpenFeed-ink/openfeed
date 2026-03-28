@@ -113,6 +113,7 @@ export const UpsertProject = ({ projectData, title = "New Project", userProjectC
                 disabled={pending}
                 rows={4}
                 minLength={5}
+                className="max-h-56"
               />
             </div>
           </div>
