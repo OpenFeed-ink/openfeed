@@ -1,4 +1,3 @@
-import { Metadata } from 'next'
 import { HeroSection } from '@/components/landing/sections/HeroSection'
 import { Navbar } from '@/components/Navbar/Navbar'
 import { FeaturesSection } from '@/components/landing/sections/FeaturesSection'
@@ -13,22 +12,6 @@ import { FinalCTA } from '@/components/landing/sections/FinalCTA'
 import { Footer } from '@/components/landing/sections/Footer'
 import { redirect } from 'next/navigation'
 import { getServerSession } from "@/lib/server/session";
-
-export const metadata: Metadata = {
-  title: 'OpenFeed — Open Source Alternative to Canny and Frill',
-  description:
-    'Collect user feedback, manage your roadmap, and publish changelogs with one embeddable widget. Open source, flat $15/month, no user limits, no forced branding. Free to self-host.',
-  keywords: [
-    'open source canny alternative',
-    'canny alternative',
-    'frill alternative',
-    'open source feedback tool',
-    'feature request board open source',
-    'self hosted feedback tool',
-    'changelog widget',
-    'roadmap tool open source',
-  ],
-}
 
 export default async function Home() {
   const session = await getServerSession();
