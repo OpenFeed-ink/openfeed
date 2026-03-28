@@ -1,37 +1,179 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+ 
+<img src="app/opengraph-image.jpg" alt="OpenFeed Logo" height="350" />
+ 
+# OpenFeed
 
-## Getting Started
+**The open source alternative to Canny and Frill.**
 
-First, run the development server:
+Feedback boards · Public roadmap · Changelog · AI Product Advisor
+
+
+[App](https://openfeed.ink)  · [Documentation](https://openfeed.ink/docs)
+</div>
+ 
+OpenFeed lets your users submit feedback, follow your roadmap, and see what you've shipped — all inside your app through one embeddable widget.
+ 
+You install it once. Everything else is managed from your dashboard.
+
+---
+ 
+## Install
 
 ```bash
-npm run dev
+npm install @openfeed/widget
 # or
-yarn dev
+pnpm add @openfeed/widget
 # or
-pnpm dev
-# or
-bun dev
+yarn add @openfeed/widget
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Prefer a script tag?**
+```html
+<script async src="https://cdn.openfeed.ink/widget/v1/widget.iife.js" data-project-id="your-project-id"></script>
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Usage
 
-## Learn More
+### React
 
-To learn more about Next.js, take a look at the following resources:
+```tsx
+import { OpenFeed } from '@openfeed-ink/widget'
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+export default function App() {
+  return (
+    <>
+      <YourApp />
+      <OpenFeed projectId="your-project-id" />
+    </>
+  )
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Next.js
 
-## Deploy on Vercel
+```tsx
+// app/layout.tsx
+import { OpenFeed } from '@openfeed-ink/widget'
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+        <OpenFeed projectId="your-project-id" />
+      </body>
+    </html>
+  )
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# openfeed
+### Plain HTML / Any framework
+
+```html
+<script
+  async
+  src="https://cdn.openfeed.ink/widget/v1/widget.iife.js"
+  data-project-id="your-project-id">
+</script>
+```
+ 
+One line. The widget loads, fetches your configuration, and renders inside a Shadow DOM so it never conflicts with your app's styles.
+ 
+---
+ 
+## Features
+ 
+**Feedback Board**
+Users submit feature requests and upvote existing ones. AI detects semantic duplicates before submission using pgvector — your board stays clean without manual effort. Anonymous users supported via secure cookies.
+ 
+**Public Roadmap**
+Drag-and-drop kanban board with Planned / In Progress / Done columns. Your users see what's coming. Your team manages it from the dashboard.
+ 
+**Changelog**
+Write updates with a rich text editor. Categorize as new feature, improvement, or bug fix. A notification dot appears on the widget when new entries are published.
+ 
+**Announcements**
+Show banners inside your app without touching your codebase. Control position, colors, dismiss behavior, and action button — all from the dashboard.
+ 
+**Widget Builder**
+Configure everything visually — colors, theme, button style, position, which tabs are visible. A live preview updates as you change settings. No code changes ever needed after install.
+ 
+**AI Product Advisor**
+An agentic AI that queries your actual feedback data to answer product questions. Ask "what should I build next?" — it checks your top requested features, reviews your roadmap, digs into specific posts, then gives a specific reasoned answer. Not a generic chatbot. It uses your data.
+ 
+**Team**
+Invite teammates by email. Two roles: Admin (full access) and Member (manage feedback, no billing or settings access).
+ 
+**Analytics**
+Widget open counts, upvote trends over time, and top requested features — all visualized in your dashboard.
+ 
+---
+ 
+## Widget Customization
+ 
+Everything configured from the dashboard, applied instantly — no redeployment needed.
+ 
+```ts
+{
+  theme: "dark" | "light" | "system",
+  triggerBtn: {
+    position: "float-bottom-right" | "float-bottom-left" | "drawer-left" | "drawer-right",
+    color: string,
+    size: "default" | "sm" | "lg" | "icon",
+    text: string | null,
+    icon: string | null,
+  },
+  showFeedback: boolean,
+  showRoadmap: boolean,
+  showChangelog: boolean,
+  announcement: {
+    position: "top" | "bottom",
+    text: string,
+    bgcolor: string,
+    textcolor: string,
+    dismiss: boolean,
+  }
+}
+```
+ 
+---
+ 
+## Self-hosting
+ 
+```bash
+git clone https://github.com/yourusername/openfeed
+cd openfeed
+cp .env.production.example .env
+./scripts/setup.sh
+```
+ 
+Running at `http://localhost:3000`. Full guide → [docs.openfeed.ink/self-hosting](https://openfeed.ink/docs/self-hosting)
+ 
+---
+ 
+## Stack
+ 
+Next.js 15 · PostgreSQL · Drizzle ORM · Better Auth · Tailwind · shadcn/ui · Vite · OpenAI  · Docker
+ 
+---
+ 
+## Contributing
+ 
+```bash
+git clone https://github.com/OpenFeed-ink/openfeed
+cd openfeed
+cp .env.example .env
+pnpm install && pnpm dev
+```
+ 
+Issues and PRs welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md).
+ 
+---
+ 
+<div align="center">
+<sub>If OpenFeed is useful to you, a ⭐ goes a long way.</sub>
+</div>
+ 
