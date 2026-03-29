@@ -66,7 +66,7 @@ export default function LegalContent() {
                 <div>
                   <h3 className="text-xl font-medium mb-2">2.3 Subscriptions & Billing</h3>
                   <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                    <li>Payments are processed by Paddle (Merchant of Record)</li>
+                    <li>Payments are processed by Paddle</li>
                     <li>Subscriptions renew automatically unless canceled</li>
                     <li>You can cancel anytime from your dashboard</li>
                   </ul>
@@ -123,8 +123,9 @@ export default function LegalContent() {
                 <div>
                   <h3 className="text-xl font-medium mb-2">3.3 End User Data (Widgets)</h3>
                   <p className="text-muted-foreground">
-                    If you use the OpenFeed widget, end users may submit feedback, votes, and comments.
-                    Data can be anonymous unless provided voluntarily. You are responsible for informing your users via your own privacy policy.
+                    We offer a 7-day free trial so you can fully evaluate the service before making a purchase.
+                    After the trial period, payments are processed for continued access to the platform.
+                    If you experience any issues, please contact support and we will do our best to assist you.
                   </p>
                 </div>
 
@@ -167,8 +168,9 @@ export default function LegalContent() {
             <section>
               <h2 className="text-2xl font-semibold text-teal-600 dark:text-teal-400 mb-3">4. Refund Policy</h2>
               <p className="text-muted-foreground">
-                Due to the nature of digital services, payments are generally non-refundable.
-                If you experience issues, contact support and we will assist you.
+                We offer a 7-day free trial so you can fully evaluate the service before making a purchase.
+                After the trial period, payments are processed for continued access to the platform.
+                If you experience any issues, please contact support and we will do our best to assist you.
               </p>
             </section>
 
