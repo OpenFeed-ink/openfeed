@@ -16,15 +16,11 @@ RUN npm install -g npm@11.12.0
 
 RUN npm ci
 
-COPY . .
-
-# Add the entrypoint script to the container
-COPY docker-entrypoint.sh /usr/local/bin/
-
-# Make sure the entrypoint script is executable
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+COPY --chown=nextjs:nodejs . .
 
 RUN npm run build
+
+RUN mkdir -p /app/.next/cache
 
 RUN cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/
 
@@ -41,10 +37,9 @@ ENV REDIS_URL=redis://localhost:6379
 # Create non-root user for running the app
 RUN addgroup --system --gid 1001 nodejs && \
   adduser --system --uid 1001 nextjs
-   
+
 EXPOSE 8080
 
 USER nextjs
 
-ENTRYPOINT ["docker-entrypoint.sh"]
-
+CMD ["node", ".next/standalone/server.js"]

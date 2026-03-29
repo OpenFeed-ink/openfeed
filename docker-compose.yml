@@ -41,10 +41,7 @@ services:
       AUTH_GITHUB_SECRET: ${AUTH_GITHUB_SECRET}
       
       # REDIS
-      REDIS_DB_ADDRESS: redis
-      REDIS_DB_PORT: 6379
-      REDIS_DB_PASSWORD: ${REDIS_DB_PASSWORD}
-      REDIS_DB_DATABASE: ${REDIS_DB_DATABASE}
+      REDIS_URL: redis://redis:6379
 
       # Open Ai
       OPENAI_KEY: ${OPENAI_KEY}
@@ -59,7 +56,6 @@ services:
     depends_on:
       - postgres
       - redis
-
 volumes:
   postgres_data:
   redis_data:
