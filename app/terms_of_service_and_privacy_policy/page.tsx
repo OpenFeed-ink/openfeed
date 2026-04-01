@@ -6,7 +6,7 @@ import Link from "next/link"
 
 export default function LegalContent() {
   return (
-    <div className="min-h-screen w-full bg-linear-to-br from-slate-50 via-white to-teal-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-teal-950/20 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen w-full bg-linear-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950/20 py-12 px-4 sm:px-6 lg:px-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -26,10 +26,10 @@ export default function LegalContent() {
 
             {/* Introduction */}
             <section>
-              <h2 className="text-2xl font-semibold text-teal-600 dark:text-teal-400 mb-3">1. Introduction</h2>
+              <h2 className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400 mb-3">1. Introduction</h2>
               <p className="text-muted-foreground leading-relaxed">
                 Welcome to OpenFeed, an open-source feedback, roadmap, and changelog platform.
-                By using OpenFeed Cloud, you agree to these Terms. If you do not agree, please do not use the Service.
+                By using OpenFeed Cloud operated by <strong>mailtana</strong>, you agree to these Terms. If you do not agree, please do not use the Service.
               </p>
             </section>
 
@@ -37,12 +37,12 @@ export default function LegalContent() {
 
             {/* Terms of Service */}
             <section>
-              <h2 className="text-2xl font-semibold text-teal-600 dark:text-teal-400 mb-6">2. Terms of Service</h2>
+              <h2 className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400 mb-6">2. Terms of Service</h2>
 
               <div className="space-y-6">
                 <div>
                   <h3 className="text-xl font-medium mb-2 flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-teal-600" />
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                     2.1 Acceptable Use
                   </h3>
                   <p className="text-muted-foreground">You agree to:</p>
@@ -92,12 +92,12 @@ export default function LegalContent() {
 
             {/* Privacy Policy */}
             <section>
-              <h2 className="text-2xl font-semibold text-teal-600 dark:text-teal-400 mb-6">3. Privacy Policy</h2>
+              <h2 className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400 mb-6">3. Privacy Policy</h2>
 
               <div className="space-y-6">
                 <div>
                   <h3 className="text-xl font-medium mb-2 flex items-center gap-2">
-                    <Database className="h-5 w-5 text-teal-600" />
+                    <Database className="h-5 w-5 text-emerald-600" />
                     3.1 Data We Collect
                   </h3>
                   <p className="text-muted-foreground">We collect only what is necessary:</p>
@@ -110,9 +110,9 @@ export default function LegalContent() {
 
                 <div>
                   <h3 className="text-xl font-medium mb-2">3.2 Data We Do NOT Store or Sell</h3>
-                  <div className="bg-teal-50 dark:bg-teal-950/30 p-4 rounded-lg">
-                    <p className="text-teal-800 dark:text-teal-200 font-medium">We do:</p>
-                    <ul className="list-disc list-inside text-teal-700 dark:text-teal-300 mt-1">
+                  <div className="bg-emerald-50 dark:bg-emerald-950/30 p-4 rounded-lg">
+                    <p className="text-emerald-800 dark:text-emerald-200 font-medium">We do:</p>
+                    <ul className="list-disc list-inside text-emerald-700 dark:text-emerald-300 mt-1">
                       <li>NOT sell your data</li>
                       <li>NOT use your data to train AI models</li>
                     </ul>
@@ -123,9 +123,8 @@ export default function LegalContent() {
                 <div>
                   <h3 className="text-xl font-medium mb-2">3.3 End User Data (Widgets)</h3>
                   <p className="text-muted-foreground">
-                    We offer a 7-day free trial so you can fully evaluate the service before making a purchase.
-                    After the trial period, payments are processed for continued access to the platform.
-                    If you experience any issues, please contact support and we will do our best to assist you.
+                    If you use the OpenFeed widget, end users may submit feedback, votes, and comments.
+                    Data can be anonymous unless provided voluntarily. You are responsible for informing your users via your own privacy policy.
                   </p>
                 </div>
 
@@ -138,7 +137,7 @@ export default function LegalContent() {
 
                 <div>
                   <h3 className="text-xl font-medium mb-2 flex items-center gap-2">
-                    <Lock className="h-5 w-5 text-teal-600" />
+                    <Lock className="h-5 w-5 text-emerald-600" />
                     3.5 Security
                   </h3>
                   <p className="text-muted-foreground">
@@ -166,11 +165,12 @@ export default function LegalContent() {
 
             {/* Refund Policy */}
             <section>
-              <h2 className="text-2xl font-semibold text-teal-600 dark:text-teal-400 mb-3">4. Refund Policy</h2>
+              <h2 className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400 mb-3">4. Refund Policy</h2>
               <p className="text-muted-foreground">
-                We offer a 7-day free trial so you can fully evaluate the service before making a purchase.
-                After the trial period, payments are processed for continued access to the platform.
-                If you experience any issues, please contact support and we will do our best to assist you.
+                We offer a 7-day free trial so you can evaluate the service before purchasing.
+                After a successful payment, customers may request a full refund within 7 days of the initial charge. Refund requests made after this period are not guaranteed and will be handled at our discretion.
+                To request a refund, please contact us at: aliamer19ali@gmail.com
+                After a refund is issued, access to paid features may be revoked.
               </p>
             </section>
 
@@ -178,20 +178,21 @@ export default function LegalContent() {
 
             {/* Changes & Contact */}
             <section>
-              <h2 className="text-2xl font-semibold text-teal-600 dark:text-teal-400 mb-3">5. Changes to These Terms</h2>
+              <h2 className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400 mb-3">5. Changes to These Terms</h2>
               <p className="text-muted-foreground">
                 We may update these Terms from time to time. Continued use means you accept the updated Terms.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-teal-600 dark:text-teal-400 mb-3 flex items-center gap-2">
+              <h2 className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400 mb-3 flex items-center gap-2">
                 <Mail className="h-6 w-6" />
                 6. Contact
               </h2>
               <p className="text-muted-foreground">
                 Email: aliamer19ali@gmail.com<br />
-                Website: <Link href="/" className="text-teal-600 hover:underline">openfeed.ink</Link>
+                Website: <Link href="https://openfeed.ink" className="text-emerald-600 hover:underline">openfeed.ink</Link><br />
+                Legal Entity: <span className="text-emerald-600 hover:underline">mailtana</span>
               </p>
             </section>
 

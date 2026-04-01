@@ -44,14 +44,6 @@ export function Navbar({ user }: { user?: User }) {
               />
             </Link>
 
-            {/* Sign in */}
-            <Link
-              href="/signin"
-              className="text-sm font-medium transition-colors text-foreground hover:text-teal-600"
-            >
-              Sign in
-            </Link>
-
             {/* Start free button */}
             <Button
               size="lg"

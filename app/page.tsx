@@ -1,5 +1,4 @@
 import { HeroSection } from '@/components/landing/sections/HeroSection'
-import { Navbar } from '@/components/Navbar/Navbar'
 import { FeaturesSection } from '@/components/landing/sections/FeaturesSection'
 import { SectionWrapper } from '@/components/landing/sections/SectionWrapper'
 import { InstallSection } from '@/components/landing/sections/InstallSection'
@@ -12,13 +11,14 @@ import { FinalCTA } from '@/components/landing/sections/FinalCTA'
 import { Footer } from '@/components/landing/sections/Footer'
 import { redirect } from 'next/navigation'
 import { getServerSession } from "@/lib/server/session";
+import { MainNavBar } from '@/components/Navbar/mainNavbar'
 
 export default async function Home() {
   const session = await getServerSession();
   if (session) redirect("/projects");
 
   return (<div className="flex flex-col w-full">
-    <Navbar />
+    <MainNavBar />
     <HeroSection />
     <SectionWrapper>
       <FeaturesSection />
