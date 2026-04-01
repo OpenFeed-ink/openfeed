@@ -168,7 +168,7 @@ export default function LegalContent() {
               <h2 className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400 mb-3">4. Refund Policy</h2>
               <p className="text-muted-foreground">
                 We offer a 7-day free trial so you can evaluate the service before purchasing.
-                After a successful payment, customers may request a full refund within 7 days of the initial charge. Refund requests made after this period are not guaranteed and will be handled at our discretion.
+                After a successful payment, customers may request a full refund within 14 days of the initial charge. Refund requests made after this period are not guaranteed and will be handled at our discretion.
                 To request a refund, please contact us at: aliamer19ali@gmail.com
                 After a refund is issued, access to paid features may be revoked.
               </p>
