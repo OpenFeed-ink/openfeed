@@ -38,6 +38,7 @@ jobs:
           NEXT_PUBLIC_PADDLE_SCALE_PRICE_ID: ${{ secrets.NEXT_PUBLIC_PADDLE_SCALE_PRICE_ID }}
           NEXT_PUBLIC_PADDLE_GROWTH_PRICE_ID: ${{ secrets.NEXT_PUBLIC_PADDLE_GROWTH_PRICE_ID }}
           NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID: ${{ secrets.NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID }}
+          REDIS_URL: ${{secrets.REDIS_URL}}
 
   deploy:
     # ONLY run on production pushes
