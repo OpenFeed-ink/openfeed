@@ -16,6 +16,7 @@ export const user = pgTable("user", {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
   plan: planEnum("plan").default("FREE").notNull(),
+  customerId: text("customer_id")
 });
 
 export const session = pgTable(

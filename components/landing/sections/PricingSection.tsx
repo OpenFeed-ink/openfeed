@@ -1,21 +1,12 @@
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import * as motion from "motion/react-client"
 import { Check } from 'lucide-react'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
-import Link from "next/link"
+import { PayBtn } from '@/components/PayBtn/PayBtn'
 
 const plans = [
   {
-    name: 'Self-hosted',
-    price: 'Free',
-    description: 'Self-host for free, forever.',
-    features: ['All features', 'Unlimited everything', 'You manage hosting', 'Community support', 'OpenFeed branding'],
-    cta: 'Get started on GitHub',
-    popular: false,
-  },
-  {
-    name: 'Starter',
+    name: 'Starter' as "Starter" | "Growth" | "Scale",
     price: '$15',
     period: '/month',
     description: 'Perfect for small teams.',
@@ -24,7 +15,6 @@ const plans = [
       '5 team members',
       'All features included',
       'Unlimited end users',
-      'No OpenFeed branding',
       'AI Product Advisor',
       'Email support',
       '7-day free trial',
@@ -33,7 +23,7 @@ const plans = [
     popular: true,
   },
   {
-    name: 'Growth',
+    name: 'Growth' as "Starter" | "Growth" | "Scale",
     price: '$29',
     period: '/month',
     description: 'For growing companies.',
@@ -41,14 +31,14 @@ const plans = [
       '5 projects',
       '15 team members',
       'Everything in Starter',
-      'API access',
+      'API access (soon)',
       'Priority support',
     ],
     cta: 'Start free trial →',
     popular: false,
   },
   {
-    name: 'Scale',
+    name: 'Scale' as "Starter" | "Growth" | "Scale",
     price: '$59',
     period: '/month',
     description: 'For large organizations.',
@@ -56,9 +46,8 @@ const plans = [
       'Unlimited projects',
       'Unlimited team members',
       'Everything in Growth',
-      'Custom domain',
-      'Webhooks',
-      'White label widget',
+      'Custom domain (soon)',
+      'Webhooks (soon)',
       '24h support SLA',
     ],
     cta: 'Start free trial →',
@@ -67,6 +56,7 @@ const plans = [
 ]
 
 export function PricingSection() {
+
   return (
     <div>
       <h2 className="text-3xl font-bold text-center mb-4">Honest pricing. No surprises.</h2>
@@ -78,7 +68,7 @@ export function PricingSection() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
-        className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
       >
         {plans.map((plan, i) => (
           <motion.div key={i} variants={fadeInUp}>
@@ -98,15 +88,7 @@ export function PricingSection() {
                     </li>
                   ))}
                 </ul>
-                <Button
-                  className={`mt-6 w-full ${plan.popular ? 'bg-teal-600 hover:bg-teal-700' : ''}`}
-                  variant={plan.popular ? 'default' : 'outline'}
-                  asChild
-                >
-                  <Link href="/signin">
-                    {plan.cta}
-                  </Link>
-                </Button>
+                <PayBtn plan={plan} />
               </CardContent>
             </Card>
           </motion.div>

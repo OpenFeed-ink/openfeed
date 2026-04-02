@@ -9,10 +9,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogOutDropdownMenuItem, ModeToggleDropdownMenuItem } from "../DropdownMenuItems/DropdownMenuItems";
-import { BadgeCheckIcon, BellIcon, CreditCardIcon, SparklesIcon } from "lucide-react";
+import { CreditCardIcon, SparklesIcon } from "lucide-react";
 import { ReactNode } from "react";
 import { User } from "better-auth";
 import { UserPlan } from "../UserPlan/UserPlan";
+import Link from "next/link"
 
 export const UserMenu = ({ user, isSidebarMobile, children }: { isSidebarMobile?: boolean, user: User, children: ReactNode }) => {
   return (
@@ -26,28 +27,20 @@ export const UserMenu = ({ user, isSidebarMobile, children }: { isSidebarMobile?
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <SparklesIcon
-            />
-            Upgrade to Pro
+          <DropdownMenuItem asChild>
+            <Link href={"/pricing"}>
+              <SparklesIcon />
+              Upgrade to Pro
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <BadgeCheckIcon
-            />
-            Account
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CreditCardIcon
-            />
-            Billing
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <BellIcon
-            />
-            Notifications
+          <DropdownMenuItem asChild>
+            <Link href={process.env.NEXT_PUBLIC_PADDLE_CUSTOMER_PORTAL_URL}>
+              <CreditCardIcon />
+              Billing
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <ModeToggleDropdownMenuItem />

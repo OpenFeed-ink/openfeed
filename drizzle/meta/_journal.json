@@ -267,6 +267,13 @@
       "when": 1774622698981,
       "tag": "0037_young_wrecker",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1775123451863,
+      "tag": "0038_light_domino",
+      "breakpoints": true
     }
   ]
 }
