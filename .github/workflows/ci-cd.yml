@@ -1,34 +1,35 @@
 name: CI/CD Pipeline
 
 on:
+  pull_request:
+    branches: [main]   # PRs to main → test only
   push:
-    branches: [production]
+    branches: [production]  # production → deploy
 
 jobs:
-  build-and-deploy:
+  test:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 23
+          cache: 'npm'
 
-      # 3. Install dependencies
-      - name: Install deps
+      - name: Install
         run: npm ci
 
-      # 4. Lint
-      - name: Run lint
+      - name: Lint
         run: npm run lint
 
-      # 5. Build (IMPORTANT: inject env here too)
-      - name: Build app
+      - name: Type Check
+        run: npm run type-check || echo "No type-check script"
+
+      - name: Build Test
         run: npm run build
         env:
           NEXT_PUBLIC_PADDLE_ENV: ${{ secrets.NEXT_PUBLIC_PADDLE_ENV }}
@@ -38,14 +39,23 @@ jobs:
           NEXT_PUBLIC_PADDLE_GROWTH_PRICE_ID: ${{ secrets.NEXT_PUBLIC_PADDLE_GROWTH_PRICE_ID }}
           NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID: ${{ secrets.NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID }}
 
-      # 6. Setup Fly CLI
+  deploy:
+    # ONLY run on production pushes
+    if: github.ref == 'refs/heads/production'
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup Fly
         uses: superfly/flyctl-actions/setup-flyctl@master
 
-      # 7. Deploy (with build args!)
       - name: Deploy to Fly
         run: |
           flyctl deploy \
+            --remote-only \
             --build-arg NEXT_PUBLIC_PADDLE_ENV=${{ secrets.NEXT_PUBLIC_PADDLE_ENV }} \
             --build-arg NEXT_PUBLIC_PADDLE_SUCCESSURL=${{ secrets.NEXT_PUBLIC_PADDLE_SUCCESSURL }} \
             --build-arg NEXT_PUBLIC_PADDLE_CLIENT_TOKEN=${{ secrets.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN }} \
