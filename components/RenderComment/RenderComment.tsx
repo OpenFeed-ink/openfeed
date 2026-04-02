@@ -10,7 +10,6 @@ import { CommentNode } from "@/type";
 import { AddComments } from "../AddComments/AddComments";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProjectPermission } from "@/contexts/ProjectPermissionProvider";
-import { useCallback } from "react";
 import { FormatDistanceToNow } from "../FromatDistanceToNow/FormatDistanceToNow";
 
 export function RenderComment({ comment, userName, userId, depth = 0 }: { comment: CommentNode; userName: string, userId: string; depth?: number }) {
@@ -28,10 +27,7 @@ export function RenderComment({ comment, userName, userId, depth = 0 }: { commen
  
   const isAuthor = comment.authorId === user.id || comment.visitorToken === user.id;
   const isPinned = comment.id === pinCommentId;
-
-  const getAuthorRole = useCallback(() => {
-    return getUserRole(comment.author?.id ?? "Anonymous").role.toLowerCase()
-  }, [comment.author?.id])
+  const authorRole = getUserRole(comment.author?.id ?? "Anonymous").role.toLowerCase();
 
   const maxDepth = 10;
   const effectiveDepth = Math.min(depth, maxDepth);
@@ -40,7 +36,7 @@ export function RenderComment({ comment, userName, userId, depth = 0 }: { commen
     ? (isMobile ? "ml-2 border-l border-muted pl-2" : "ml-6 border-l-2 border-muted pl-4")
     : "";
   const pinnedClass = isPinned ? "rounded-md bg-yellow-50 dark:bg-yellow-950/30 p-3" : "";
-const authorRole = getAuthorRole()
+
   return (
     <div className={`space-y-2 ${indentClass} ${pinnedClass}`}>
       <div className="flex gap-2 sm:gap-3">

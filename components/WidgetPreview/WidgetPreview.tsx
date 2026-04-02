@@ -9,7 +9,7 @@ export function WidgetPreview({projectId}:{projectId:string}) {
   const iframeSrc = useMemo(() => {
     const encoded = encodeURIComponent(JSON.stringify({...config, projectId}))
     return `/widget-preview?config=${encoded}`
-  }, [config])
+  }, [config, projectId])
 
   return (
     <iframe
