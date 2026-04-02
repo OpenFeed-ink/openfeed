@@ -22,12 +22,15 @@ export function ProjectPermissionProvider({
   children: React.ReactNode;
 }) {
 
-  const getUserRole = (userId: string) => memeberships.find(f => f.userId === userId) ?? { userId, role: "ANONYMOUS" }
+  const getUserRole = useCallback(
+    (targetUserId: string) => memeberships.find(f => f.userId === targetUserId) ?? { userId: targetUserId, role: "ANONYMOUS" as const },
+    [memeberships],
+  );
 
   const getPermission = useCallback(() => {
     const { role } = getUserRole(userId)
     return PERMISSIONS[role]
-  }, [userId])
+  }, [getUserRole, userId])
 
   return (
     <ProjectPermissionContext.Provider value={{getUserRole, getPermission}}>

@@ -1,7 +1,9 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+import typography from "@tailwindcss/typography";
+
+const config = {
   darkMode: ['class'],
-  plugins: [require('@tailwindcss/typography')],
+  plugins: [typography],
   theme: {
     extend: {
       fontFamily: {
@@ -92,3 +94,5 @@ export default {
     './node_modules/fumadocs-ui/dist/**/*.js',
   ],
 };
+
+export default config;

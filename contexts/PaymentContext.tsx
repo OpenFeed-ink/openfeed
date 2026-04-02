@@ -1,6 +1,6 @@
 "use client"
 import { Environments, initializePaddle, Paddle } from "@paddle/paddle-js";
-import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from "react";
+import { ReactNode, createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from 'next/navigation'
 
 type Plan = "Starter" | "Growth" | "Scale"
@@ -29,7 +29,7 @@ export const PaymentProvider = ({ redirectTo, children }: { redirectTo?: string,
           token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN,
         });
         setPaddle(paddleInstance);
-      } catch (error) {
+      } catch {
         console.error("[BUG]: ❌ Paddle initialization failed")
 
       }
@@ -81,29 +81,24 @@ export const PaymentProvider = ({ redirectTo, children }: { redirectTo?: string,
   };
 
 
-  const paddlePay = (plan: Plan) => {
-    if (redirectTo) return push(redirectTo)
-    switch (plan) {
-      case 'Starter':
-        return openStarterCheckout()
-      case "Growth":
-        return openGrowthCheckout()
-      case "Scale":
-        return openScaleCheckout()
-      default:
-        break;
-    }
-  }
-
-  const contextValue = useMemo(
-    () => ({
-      paddlePay
-    }),
-    [paddle],
-  );
-
   return (
-    <PaymentContext.Provider value={contextValue}>
+    <PaymentContext.Provider
+      value={{
+        paddlePay: (plan: Plan) => {
+          if (redirectTo) return push(redirectTo)
+          switch (plan) {
+            case 'Starter':
+              return openStarterCheckout()
+            case "Growth":
+              return openGrowthCheckout()
+            case "Scale":
+              return openScaleCheckout()
+            default:
+              break;
+          }
+        }
+      }}
+    >
       {children}
     </PaymentContext.Provider>)
 }
