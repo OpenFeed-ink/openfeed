@@ -31,11 +31,11 @@ jobs:
 
           echo "Building version: $VERSION"
 
-          docker build -t ghcr.io/dcup-dev/dcup:$VERSION .
-          docker push ghcr.io/dcup-dev/dcup:$VERSION
+          docker build -t ghcr.io/OpenFeed-ink/openfeed:$VERSION .
+          docker push ghcr.io/OpenFeed-ink/openfeed:$VERSION
 
-          docker tag ghcr.io/dcup-dev/dcup:$VERSION ghcr.io/dcup-dev/dcup:latest
-          docker push ghcr.io/dcup-dev/dcup:latest
+          docker tag ghcr.io/OpenFeed-ink/openfeed:$VERSION ghcr.io/OpenFeed-ink/openfeed:latest
+          docker push ghcr.io/OpenFeed-ink/openfeed:latest
 
       - name: Logout
         run: docker logout ghcr.io
