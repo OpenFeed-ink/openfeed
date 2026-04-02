@@ -38,6 +38,7 @@ jobs:
           NEXT_PUBLIC_PADDLE_SCALE_PRICE_ID: ${{ secrets.NEXT_PUBLIC_PADDLE_SCALE_PRICE_ID }}
           NEXT_PUBLIC_PADDLE_GROWTH_PRICE_ID: ${{ secrets.NEXT_PUBLIC_PADDLE_GROWTH_PRICE_ID }}
           NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID: ${{ secrets.NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID }}
+          NEXT_PUBLIC_PADDLE_CUSTOMER_PORTAL_URL: ${{secrets.NEXT_PUBLIC_PADDLE_CUSTOMER_PORTAL_URL}}
           REDIS_URL: ${{secrets.REDIS_URL}}
 
   deploy:
@@ -54,6 +55,15 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy to Fly
-        run: flyctl deploy --remote-only --build-arg NEXT_PUBLIC_PADDLE_ENV=${{ secrets.NEXT_PUBLIC_PADDLE_ENV }} --build-arg NEXT_PUBLIC_PADDLE_SUCCESSURL=${{ secrets.NEXT_PUBLIC_PADDLE_SUCCESSURL }} --build-arg NEXT_PUBLIC_PADDLE_CLIENT_TOKEN=${{ secrets.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN }} --build-arg NEXT_PUBLIC_PADDLE_SCALE_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_SCALE_PRICE_ID }} --build-arg NEXT_PUBLIC_PADDLE_GROWTH_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_GROWTH_PRICE_ID }} --build-arg NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID }}
+        run: >
+          flyctl deploy --remote-only
+          --build-arg NEXT_PUBLIC_PADDLE_ENV=${{ secrets.NEXT_PUBLIC_PADDLE_ENV }}
+          --build-arg NEXT_PUBLIC_PADDLE_SUCCESSURL=${{ secrets.NEXT_PUBLIC_PADDLE_SUCCESSURL }}
+          --build-arg NEXT_PUBLIC_PADDLE_CLIENT_TOKEN=${{ secrets.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN }}
+          --build-arg NEXT_PUBLIC_PADDLE_SCALE_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_SCALE_PRICE_ID }}
+          --build-arg NEXT_PUBLIC_PADDLE_GROWTH_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_GROWTH_PRICE_ID }}
+          --build-arg NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_STARTER_PRICE_ID }}
+          --build-arg NEXT_PUBLIC_PADDLE_CUSTOMER_PORTAL_URL=${{ secrets.NEXT_PUBLIC_PADDLE_CUSTOMER_PORTAL_URL }}
+
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
