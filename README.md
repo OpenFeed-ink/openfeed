@@ -21,11 +21,11 @@ You install it once. Everything else is managed from your dashboard.
 ## Install
 
 ```bash
-npm install @openfeed/widget
+npm install @openfeed-ink/widget
 # or
-pnpm add @openfeed/widget
+pnpm add @openfeed-ink/widget
 # or
-yarn add @openfeed/widget
+yarn add @openfeed-ink/widget
 ```
 
 **Prefer a script tag?**
