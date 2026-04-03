@@ -9,7 +9,8 @@ import { HexColorPicker } from "react-colorful"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { useWidgetBuilder } from "@/contexts/WidgetBuilderProvider"
-import { Megaphone } from "lucide-react"
+import { Copy, Megaphone } from "lucide-react"
+import { toast } from "sonner"
 
 export const AVAILABLE_ICONS = [
   "message-square",
@@ -24,7 +25,7 @@ export const AVAILABLE_ICONS = [
 
 
 export function ConfigForm() {
-  const { setConfig, config, pending, errors } = useWidgetBuilder()
+  const { setConfig, config, projectId, pending, errors } = useWidgetBuilder()
   const update = (path: string[], value: any) => {
     const newConfig = { ...config }
     let obj: any = newConfig
@@ -53,6 +54,35 @@ export function ConfigForm() {
 
   return (
     <div className="space-y-6">
+      <Card className="border-teal-500/50 bg-teal-50 dark:bg-teal-950/20 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Copy className="h-4 w-4 text-teal-600" />
+            Project ID
+          </CardTitle>
+          <CardDescription>
+            Use this ID when embedding the widget via the script tag or npm package.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 rounded-md bg-background px-3 py-2 text-sm font-mono border border-border">
+              {projectId}
+            </code>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                navigator.clipboard.writeText(projectId);
+                toast.success("Project ID copied to clipboard!");
+              }}
+            >
+              <Copy className="h-4 w-4 mr-1" />
+              Copy
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       {/* General Settings */}
       <Card>
         <CardHeader>

@@ -21,6 +21,7 @@ export const configSchema = z.object({
 })
 
 type WidgetBuilderContextType = {
+  projectId:string;
   config: Config;
   pending: boolean;
   errors: {
@@ -82,6 +83,7 @@ export function WidgetBuilderProvider({
     <WidgetBuilderContext.Provider
       value={{
         config,
+        projectId,
         pending,
         setConfig,
         saveConfig,
