@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { databaseDrizzle } from "@/db";
 import { redirect } from 'next/navigation'
 import { UpsertFeature } from "@/components/UpsertFeature/UpsertFeature";
-import { UpvoteProvider } from "@/contexts/UpvoteProvider";
 import { isUUID } from "@/lib/utils";
 import { and, eq, ilike, inArray, or, count } from "drizzle-orm";
 import { feature, featureTags, project } from "@/db/schema";
@@ -172,46 +171,37 @@ export default async function ProjectFeedbackPage({ params, searchParams }: Page
         availableTags={projectData.tags}
       />
 
-      {/* Split panel with UpvoteProvider */}
+      {/* Split panel */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 mt-6">
-        <UpvoteProvider
-          initialVotes={Object.fromEntries(
-            features.map((f) => [
-              f.id,
-              { voted: f.upvotes.length > 0, count: f.upvotesCount },
-            ])
-          )}
-        >
-          {/* Left panel - Feedback list */}
-          <div className="order-1 lg:col-span-1">
-            <FeatureList
-              features={features}
-              totalPages={totalPages}
-              currentPage={currentPage}
-              selectedFeatureId={featureId}
-              userId={session.user.id}
-            />
-          </div>
+        {/* Left panel - Feedback list */}
+        <div className="order-1 lg:col-span-1">
+          <FeatureList
+            features={features}
+            totalPages={totalPages}
+            currentPage={currentPage}
+            selectedFeatureId={featureId}
+            userId={session.user.id}
+          />
+        </div>
 
-          {/* Right panel - Feedback detail */}
-          <div className="lg:col-span-2">
-            {featureId && isUUID(featureId) ? (
-              <Suspense key={featureId} fallback={<Skeleton className="h-150 rounded-xl w-full" />}>
-                <FeatureDetail
-                  featureId={featureId}
-                  projectId={id}
-                  user={{
-                    id: session.user.id,
-                    name: session.user.name,
-                    image: session.user.image ?? null
-                  }}
-                />
-              </Suspense>
-            ) : (
-              <NoFeatureRequest />
-            )}
-          </div>
-        </UpvoteProvider>
+        {/* Right panel - Feedback detail */}
+        <div className="lg:col-span-2">
+          {featureId && isUUID(featureId) ? (
+            <Suspense key={featureId} fallback={<Skeleton className="h-150 rounded-xl w-full" />}>
+              <FeatureDetail
+                featureId={featureId}
+                projectId={id}
+                user={{
+                  id: session.user.id,
+                  name: session.user.name,
+                  image: session.user.image ?? null
+                }}
+              />
+            </Suspense>
+          ) : (
+            <NoFeatureRequest />
+          )}
+        </div>
       </div>
     </div>
   );

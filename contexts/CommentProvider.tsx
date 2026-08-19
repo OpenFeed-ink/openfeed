@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Author, CommentNode} from "@/type"
 import { pinCommentAction } from "@/actions/comments";
@@ -36,7 +36,7 @@ export function CommentProvider({
 }) {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
-  const pinComment = async (commentId: string, pin: boolean) => {
+  const pinComment = useCallback(async (commentId: string, pin: boolean) => {
     const formData = new FormData();
 
     pin && formData.append("id", commentId);
@@ -50,19 +50,25 @@ export function CommentProvider({
     if (response.status === 'SUCCESS') {
       toast.success(response.message)
     }
-  };
+  }, [feature.id, feature.projectId]);
+
+  // Without this, any setReplyingTo call re-renders every RenderComment in
+  // the tree via context, not just the two comments whose "replying" state
+  // actually changed.
+  const contextValue = useMemo(
+    () => ({
+      feature,
+      user,
+      replyingTo,
+      setReplyingTo,
+      pinComment,
+      pinCommentId: feature.pinCommentId
+    }),
+    [feature, user, replyingTo, pinComment]
+  )
 
   return (
-    <CommentContext.Provider
-      value={{
-        feature,
-        user,
-        replyingTo,
-        setReplyingTo,
-        pinComment,
-        pinCommentId: feature.pinCommentId
-      }}
-    >
+    <CommentContext.Provider value={contextValue}>
       {children}
     </CommentContext.Provider>
   );

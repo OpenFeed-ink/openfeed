@@ -1,30 +1,19 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthorizationProvider } from '@/contexts/AuthorizationProvider';
-import { ProjectPermissionProvider } from "@/contexts/ProjectPermissionProvider";
-import { getAuthorizationWithProject } from "@/lib/billing/getAuthorization";
-import { getProjectPermission } from "@/lib/permission/getProjectPermission";
-import { cookies } from "next/headers";
 
-
-export default async function RootLayout({
-  params,
+// Authorization/permission context used to live here and run its two queries
+// on every /pub/* request — including roadmap and changelog, which are pure
+// read-only views that never consume either context. Only the feature-detail
+// page actually needs them (edit/delete/pin/comment permission checks), so
+// they're fetched there instead. Anonymous roadmap/changelog visitors now
+// cost two fewer DB round trips per view.
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-  params: Promise<{ projectId: string }>
 }>) {
-  const { projectId } = await params
-  const [auth, cookieStore] = await Promise.all([getAuthorizationWithProject(projectId), cookies()])
-  const userId = cookieStore.get("visitor_token")?.value ?? ""
-  const { permissions } = await getProjectPermission(projectId)
-
   return (
     <TooltipProvider>
-      <AuthorizationProvider value={auth}>
-        <ProjectPermissionProvider memeberships={permissions} userId={userId}>
-          {children}
-        </ProjectPermissionProvider>
-      </AuthorizationProvider>
+      {children}
     </TooltipProvider>
   );
 }
