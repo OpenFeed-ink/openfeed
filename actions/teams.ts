@@ -70,7 +70,7 @@ export async function inviteMemberAction(formData: FormData) {
       .insert(invitation)
       .values(newInvitation)
       .onConflictDoUpdate({
-        target: [invitation.email],
+        target: [invitation.projectId, invitation.email],
         set: newInvitation
       })
 

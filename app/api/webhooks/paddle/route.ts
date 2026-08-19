@@ -20,7 +20,8 @@ export async function POST(req: Request) {
   try {
     event = await paddle.webhooks.unmarshal(body, secretKey, sig);
   } catch (err: any) {
-    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+    console.error("[paddle webhook] signature verification failed:", err);
+    return new Response("Webhook Error: invalid signature", { status: 400 });
   }
 
   try {
@@ -50,22 +51,39 @@ export async function POST(req: Request) {
               throw new Error(`Invalid priceId: ${priceId}`);
             }
 
-          const userId = await databaseDrizzle
-              .update(user)
-              .set({
-                plan: planData,
-              })
-              .where(eq(user.customerId, event.data.customerId))
-              .returning({ id: user.id }).then(u => u[0].id);
+            const matchedUser = await databaseDrizzle.query.user.findFirst({
+              where: eq(user.customerId, event.data.customerId),
+              columns: { id: true, plan: true },
+            });
 
+            if (!matchedUser) {
+              // No local user is linked to this Paddle customer yet — most likely
+              // this event raced ahead of the CustomerCreated/CustomerUpdated
+              // webhook. Log and move on instead of throwing: throwing turns the
+              // whole handler into a 400 and Paddle retries indefinitely while
+              // the customer is paying but never gets upgraded to look into.
+              console.error(
+                `[paddle webhook] no user found for customerId ${event.data.customerId}, priceId ${priceId}`
+              );
+              continue;
+            }
+
+            // Only touch the plan/token cap when the plan actually changed.
+            // SubscriptionUpdated also fires for benign changes (payment method,
+            // quantity, etc.) and Paddle's at-least-once delivery can redeliver
+            // the same event — without this check, either resets the AI token
+            // cap for free on every redelivery.
+            if (matchedUser.plan === planData) continue;
+
+            await databaseDrizzle
+              .update(user)
+              .set({ plan: planData })
+              .where(eq(user.id, matchedUser.id));
 
             await databaseDrizzle
               .update(project)
-              .set({
-                tokensUsed: 0,
-              })
-              .where(eq(project.ownerId, userId));
-
+              .set({ tokensUsed: 0 })
+              .where(eq(project.ownerId, matchedUser.id));
           }
           break;
         }
@@ -85,8 +103,8 @@ export async function POST(req: Request) {
     }
 
   } catch (err: any) {
-    console.log(err)
-    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+    console.error(`[paddle webhook] failed to process ${event.eventType}:`, err);
+    return new Response("Webhook Error: failed to process event", { status: 400 });
   }
 
   return new Response("Webhook processed successfully", { status: 200 });

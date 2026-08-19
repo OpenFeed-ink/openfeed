@@ -188,7 +188,10 @@ const canDeleteComment = async (commentId: string, projectId: string, userId: st
   })
 
   if (!currentComment) throw new Error("comment not found")
-  const authorRole = currentComment.author?.usersProjects[0].role ?? "ANONYMOUS";
+  // Optional chain the array index too — a logged-in author who has never
+  // joined this specific project (any authenticated user can comment on a
+  // public board) leaves usersProjects empty, not just author itself.
+  const authorRole = currentComment.author?.usersProjects[0]?.role ?? "ANONYMOUS";
 
   const permit = await getProjectUserPermission(userId, projectId)
 
