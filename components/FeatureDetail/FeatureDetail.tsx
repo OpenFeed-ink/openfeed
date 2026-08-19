@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { feature } from "@/db/schema";
 import { Separator } from "@/components/ui/separator";
 import { databaseDrizzle } from "@/db";
@@ -22,7 +22,9 @@ export async function FeatureDetail({ featureId, user, projectId, pub }: {
   pub?:boolean
 }) {
   const featureData = await databaseDrizzle.query.feature.findFirst({
-    where: eq(feature.id, featureId),
+    // Scoped by projectId too — without it, any visitor who knows a feature's id
+    // could load it through a different project's /pub pages.
+    where: and(eq(feature.id, featureId), eq(feature.projectId, projectId)),
     with: {
       author: {
         columns: {

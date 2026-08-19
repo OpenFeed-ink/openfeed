@@ -26,7 +26,7 @@ export async function upsertCommentAction(_: FormState, formData: FormData) {
       headers: await headers(),
     });
 
-    const { id, projectId, featureId, content, parentId, userId, name } = CommentData.parse({
+    const { id, projectId, featureId, content, parentId, name } = CommentData.parse({
       id: formData.get("id"),
       projectId: formData.get("projectId"),
       featureId: formData.get("featureId"),
@@ -45,16 +45,22 @@ export async function upsertCommentAction(_: FormState, formData: FormData) {
       parentId: parentId
     }
 
+    // Identity must come from the server, never a client-supplied form field —
+    // otherwise a caller could impersonate another user as a comment's author,
+    // or (when anonymous) claim ownership of someone else's visitor comment.
     if (session?.user.id) {
-      newComment.authorId = userId
+      newComment.authorId = session.user.id
     } else {
-      newComment.visitorToken = userId
+      const cookieStore = await cookies()
+      const visitorToken = cookieStore.get("visitor_token")?.value
+      if (!visitorToken) throw new Error("forbidden")
+      newComment.visitorToken = visitorToken
     }
 
     await databaseDrizzle
       .insert(comment)
       .values(newComment)
-      .onConflictDoUpdate({ target: comment.id, set: comment })
+      .onConflictDoUpdate({ target: comment.id, set: newComment })
 
     revalidatePath(`/projects/${projectId}/feature-requests`);
 
@@ -124,6 +130,26 @@ export async function pinCommentAction(_: FormState, formData: FormData) {
 
     const permit = await getProjectUserPermission(session.user.id, projectId)
     if (!permit.canPin) throw new Error("you don't have permission to pin comments in this project")
+
+    // Verify the feature actually belongs to this project, and — when pinning —
+    // that the comment actually belongs to this feature. Without this, pin
+    // rights on one project could pin an arbitrary comment from anywhere onto
+    // any feature.
+    const targetFeature = await databaseDrizzle.query.feature.findFirst({
+      where: (f, ops) => ops.and(ops.eq(f.id, featureId), ops.eq(f.projectId, projectId)),
+      columns: { id: true },
+    })
+    if (!targetFeature) throw new Error("feature not found")
+
+    if (id) {
+      const targetComment = await databaseDrizzle.query.comment.findFirst({
+        where: (c, ops) => ops.eq(c.id, id),
+        columns: { featureId: true },
+      })
+      if (!targetComment || targetComment.featureId !== featureId) {
+        throw new Error("comment not found on this feature")
+      }
+    }
 
     await databaseDrizzle
       .update(feature)

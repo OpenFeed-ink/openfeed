@@ -4,7 +4,7 @@ import { feature, featureTags } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { fromErrorToFormState, FormState, toFormState } from "@/lib/zodErrorHandle";
 import { z } from "zod";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { revalidatePath } from 'next/cache';
 import { and, eq, count } from 'drizzle-orm';
 import { SimilarFeature } from "@/type";
@@ -29,7 +29,7 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
   try {
     const session = await getServerSession()
 
-    const { id, projectId, title, description, status, tagIds, userName, userId } = ProjectData.parse({
+    const { id, projectId, title, description, status, tagIds, userName, userId: formUserId } = ProjectData.parse({
       id: formData.get("id"),
       projectId: formData.get("projectId"),
       title: formData.get("title"),
@@ -39,7 +39,18 @@ export async function upsertFeaturesAction(_: FormState, formData: FormData) {
       userId: formData.get("userId"),
       userName: formData.get("userName"),
     })
-   
+
+    // Anonymous identity must come from the httpOnly visitor_token cookie, never
+    // from a client-supplied form field — otherwise anyone calling this action
+    // directly could claim ownership of another visitor's feature request.
+    let userId = formUserId
+    if (!session?.user.id) {
+      const cookieStore = await cookies()
+      const visitorToken = cookieStore.get("visitor_token")?.value
+      if (!visitorToken) throw new Error("forbidden")
+      userId = visitorToken
+    }
+
     if (id) {
       await canUpdateFeature(session?.user.id ?? userId, id)
     } else {
@@ -160,12 +171,12 @@ export async function updateFeatureStatus(_: FormState, formData: FormData) {
       projectId: formData.get("projectId")
     })
 
-    await canUpdateFeature(session.user.id, featureId)
- 
+    await canUpdateFeatureStatus(session.user.id, featureId, projectId)
+
     await databaseDrizzle
       .update(feature)
       .set({ status: newStatus })
-      .where(eq(feature.id, featureId))
+      .where(and(eq(feature.id, featureId), eq(feature.projectId, projectId)))
 
     revalidatePath(`/projects/${projectId}/roadmap`);
     return toFormState("SUCCESS", "The Feature status has been updated.");
@@ -211,6 +222,24 @@ async function canUpdateFeature(userId: string, featureId: string) {
   throw new Error(
     `You do not have permission to update this feature request`
   );
+}
+
+async function canUpdateFeatureStatus(userId: string, featureId: string, projectId: string) {
+  // Roadmap curation (moving a card between Planned/In Progress/Done) is a team
+  // action, distinct from a feature's author editing their own title/description
+  // via canUpdateFeature — an anonymous visitor or the original requester should
+  // never be able to move their own card through the public roadmap.
+  const targetFeature = await databaseDrizzle.query.feature.findFirst({
+    where: (f, ops) => ops.and(ops.eq(f.id, featureId), ops.eq(f.projectId, projectId)),
+    columns: { id: true },
+  })
+  if (!targetFeature) throw new Error("feature not found")
+
+  const permit = await getProjectUserPermission(userId, projectId)
+  if (!permit.editFeature) {
+    throw new Error("You do not have permission to update the roadmap status of this feature")
+  }
+  return true
 }
 
 async function canDeleteFeature(userId: string, featureId: string, projectId: string) {

@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { getServerSession } from "../lib/server/session";
+import { sanitizeRichText } from "@/lib/sanitize";
 
 
 export async function upsertChangeLogAction(_: FormState, formData: FormData) {
@@ -31,6 +32,10 @@ export async function upsertChangeLogAction(_: FormState, formData: FormData) {
       category: formData.get("category"),
       userId: session.user.id
     })
+
+    // Changelog content is rendered on public pages via dangerouslySetInnerHTML —
+    // strip anything but a safe rich-text allowlist before it's ever persisted.
+    newChangelog.content = sanitizeRichText(newChangelog.content);
 
     await databaseDrizzle
       .insert(changelogs)
