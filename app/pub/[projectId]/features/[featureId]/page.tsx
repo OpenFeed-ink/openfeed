@@ -1,7 +1,10 @@
 import { FeatureDetail } from "@/components/FeatureDetail/FeatureDetail"
 import ThemeController from "@/components/ThemeController"
-import { UpvoteProvider } from "@/contexts/UpvoteProvider"
+import { AuthorizationProvider } from "@/contexts/AuthorizationProvider"
+import { ProjectPermissionProvider } from "@/contexts/ProjectPermissionProvider"
 import { databaseDrizzle } from "@/db"
+import { getAuthorizationWithProject } from "@/lib/billing/getAuthorization"
+import { getProjectPermission } from "@/lib/permission/getProjectPermission"
 import { getServerSession } from "@/lib/server/session"
 import { isUUID } from "@/lib/utils"
 import { Author } from "@/type"
@@ -33,39 +36,37 @@ export default async function page({ params, searchParams }: { params: Promise<{
     }
   }
 
-  const featureData = await databaseDrizzle.query.feature.findFirst({
-    where: (f, ops) => ops.and(ops.eq(f.projectId, projectId), ops.eq(f.id, featureId)),
-    columns: {
-      upvotesCount: true
-    },
-    with: {
-      upvotes: {
-        where: (u, ops) => ops.eq(u.voterToken, user.id),
-        columns: { id: true },
-      },
-    },
-  });
+  // Only this page (edit/delete/pin/comment permission checks) needs
+  // authorization + permission context among /pub routes — fetched here,
+  // in parallel with the feature-existence check, instead of on every
+  // /pub/* request. FeatureDetail below runs its own full feature query
+  // (including upvote state) and feeds UpvoteButton's initial props directly,
+  // so this only needs to confirm the feature exists in this project for the
+  // 404 check — not fetch its upvotes too.
+  const [featureExists, auth, { permissions }] = await Promise.all([
+    databaseDrizzle.query.feature.findFirst({
+      where: (f, ops) => ops.and(ops.eq(f.projectId, projectId), ops.eq(f.id, featureId)),
+      columns: { id: true },
+    }),
+    getAuthorizationWithProject(projectId),
+    getProjectPermission(projectId),
+  ])
 
-  if (!featureData) return notFound()
+  if (!featureExists) return notFound()
 
 
   return (
     <ThemeController theme={theme}>
-      <UpvoteProvider
-        initialVotes={{
-          [featureId]: {
-            voted: featureData.upvotes.length > 0,
-            count: featureData.upvotesCount,
-          },
-        }}
-      >
-        <FeatureDetail
-          projectId={projectId}
-          user={user}
-          featureId={featureId}
-          pub={true}
-        />
-      </UpvoteProvider>
+      <AuthorizationProvider value={auth}>
+        <ProjectPermissionProvider memeberships={permissions} userId={user.id}>
+          <FeatureDetail
+            projectId={projectId}
+            user={user}
+            featureId={featureId}
+            pub={true}
+          />
+        </ProjectPermissionProvider>
+      </AuthorizationProvider>
     </ThemeController>
   )
 }

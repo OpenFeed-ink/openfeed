@@ -37,10 +37,14 @@ export function FeatureList({ features, totalPages, currentPage, userId, pub, se
   };
 
   useEffect(() => {
+    // In pub mode, selecting a feature posts a message to the parent iframe
+    // instead of navigating client-side (see handleSelect below) — prefetching
+    // Next.js routes that are never pushed to is pure waste.
+    if (pub) return;
     features.forEach((f) => {
       router.prefetch(getPrefetchUrl(f.id));
     });
-  }, [features]);
+  }, [features, pub]);
 
   const handleSelect = (featureId: string) => {
     if (pub) {
