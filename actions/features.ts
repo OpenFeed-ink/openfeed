@@ -218,6 +218,11 @@ async function canUpdateFeature(userId: string, featureId: string) {
   const premit = await getProjectUserPermission(userId, feature.projectId)
   if (premit.role === 'anonymous' && feature.visitorToken === userId) return true
   if (feature.authorId === userId) return true;
+  // The UI shows an edit button to anyone with editFeature (e.g. ADMIN), not
+  // just the original author — the server was never actually granting that,
+  // so a non-author admin would see a working-looking edit button that always
+  // failed on submit.
+  if (premit.editFeature) return true;
 
   throw new Error(
     `You do not have permission to update this feature request`

@@ -30,6 +30,26 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Blocked" }, { status: 403 })
     }
 
+    // ===== 2b. Rate limit by IP =====
+    // visitor_token is just an anti-double-count cookie, not a credential —
+    // a caller can mint a fresh one on every request and walk straight past
+    // the per-token dedup below. This is the actual backstop against a
+    // script hammering this endpoint with random tokens to inflate a
+    // project's stats: generous enough for real traffic (many visitors can
+    // share one IP behind a NAT/proxy), tight enough to block a spam script.
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown"
+    const rateLimitKey = `activity_rl:${ip}`
+    const requestCount = await redis.incr(rateLimitKey)
+    if (requestCount === 1) {
+      await redis.expire(rateLimitKey, 60)
+    }
+    if (requestCount > 60) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+    }
+
     // ===== 3. Deduplication =====
     const key = `open:${id}:${visitorToken}`
     const isNew = await redis.set(key, "1", 'EX', 300, 'NX')
@@ -69,6 +89,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ ok: true })
 
   } catch (error: any) {
+    console.error("[widget activity] failed:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

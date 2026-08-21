@@ -6,6 +6,18 @@ import { getAuthorization } from "@/lib/billing/getAuthorization"
 import { project } from "@/db/schema"
 import { and, eq, sql } from "drizzle-orm"
 import { estimateTokens } from "@/lib/server/ai"
+import { z } from "zod"
+
+// Only plain user/assistant turns with string content are accepted — a
+// caller could otherwise submit a fake {role: "system", ...} turn to
+// override the system prompt, or a fake {role: "tool", ...} turn to inject
+// forged tool results into the agentic loop.
+const historySchema = z.array(
+  z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string().max(2000),
+  })
+).max(20)
 
 export async function POST(
   req: NextRequest,
@@ -51,15 +63,22 @@ export async function POST(
 
   const { limits } = getAuthorization(projectData.owner)
 
-  const { question, history = [] } = await req.json()
+  const body = await req.json()
+  const question = typeof body.question === "string" ? body.question : ""
 
-  if (!question?.trim()) {
+  if (!question.trim()) {
     return new Response("Question is required", { status: 400 })
   }
 
   if (question.length > 500) {
     return new Response("Question too long (max 500 characters)", { status: 400 })
   }
+
+  const historyParse = historySchema.safeParse(body.history ?? [])
+  if (!historyParse.success) {
+    return new Response("Invalid conversation history", { status: 400 })
+  }
+  const history = historyParse.data
 
   const inputTokens =
     estimateTokens(question) +
