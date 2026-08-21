@@ -37,6 +37,20 @@ export async function upsertCommentAction(_: FormState, formData: FormData) {
     })
     // todo : update comment
 
+    if (parentId) {
+      // A parentId from a different feature would otherwise be silently
+      // dropped by buildCommentTree (it just never finds a matching parent
+      // node) — the reply would vanish from the UI with no error shown.
+      // Reject it instead so the client knows the reply didn't post.
+      const parentComment = await databaseDrizzle.query.comment.findFirst({
+        where: (c, ops) => ops.eq(c.id, parentId),
+        columns: { featureId: true },
+      })
+      if (!parentComment || parentComment.featureId !== featureId) {
+        throw new Error("The comment you're replying to no longer exists on this feature.")
+      }
+    }
+
     const newComment: typeof comment.$inferInsert = {
       id: id ?? undefined,
       authorName: name,

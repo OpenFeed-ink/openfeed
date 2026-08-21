@@ -197,7 +197,7 @@ export function RoadmapBoard({
     })
   }
 
-  const activeFeature = useMemo(() => activeId ? board.features[activeId] : null, [activeId])
+  const activeFeature = useMemo(() => activeId ? board.features[activeId] : null, [activeId, board])
 
   const columnFeatures = useMemo(() => {
     const map: Record<string, Feature[]> = {};

@@ -17,6 +17,7 @@ const SUGGESTED_QUESTIONS = [
 ]
 
 interface Message {
+  id: string
   role: "user" | "assistant"
   content: string
 }
@@ -35,7 +36,7 @@ export function ProductAdvisor({ projectId }: ProductAdvisorProps) {
     const q = (questionText || question).trim()
     if (!q || isLoading) return
 
-    const userMessage: Message = { role: "user", content: q }
+    const userMessage: Message = { id: crypto.randomUUID(), role: "user", content: q }
     setMessages(prev => [...prev, userMessage])
     setQuestion("")
     setIsLoading(true)
@@ -72,11 +73,12 @@ export function ProductAdvisor({ projectId }: ProductAdvisorProps) {
       }
 
       // Move streamed response to messages
-      setMessages(prev => [...prev, { role: "assistant", content: fullResponse }])
+      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: "assistant", content: fullResponse }])
       setCurrentStream("")
 
     } catch (error) {
       setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
         role: "assistant",
         content: "Sorry, I encountered an error. Please try again.",
       }])
@@ -152,9 +154,9 @@ export function ProductAdvisor({ projectId }: ProductAdvisorProps) {
         )}
 
         {/* Message history */}
-        {messages.map((message, i) => (
+        {messages.map((message) => (
           <div
-            key={i}
+            key={message.id}
             className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div

@@ -8,7 +8,7 @@ import { resend } from "@/lib/resend";
 import { fromErrorToFormState, toFormState } from "@/lib/zodErrorHandle";
 import { z } from "zod";
 import { randomBytes } from "crypto";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { getServerSession } from "@/lib/server/session";
@@ -134,16 +134,25 @@ export async function removememberAction(formData: FormData) {
 }
 
 const canInviteMember = async (projectId: string, userId: string) => {
-  const membership = await databaseDrizzle.query.usersProjects.findMany({
-    where: eq(usersProjects.projectId, projectId),
-    columns: { role: true, userId: true }
-  });
+  const [isAdmin, [{ memberCount }], { limits }] = await Promise.all([
+    databaseDrizzle.query.usersProjects.findFirst({
+      where: and(
+        eq(usersProjects.projectId, projectId),
+        eq(usersProjects.userId, userId),
+        eq(usersProjects.role, "ADMIN"),
+      ),
+      columns: { role: true },
+    }),
+    databaseDrizzle
+      .select({ memberCount: count() })
+      .from(usersProjects)
+      .where(eq(usersProjects.projectId, projectId)),
+    getAuthorizationWithProject(projectId),
+  ]);
 
-  const isAdmin = membership.find(m => m.userId === userId && m.role === 'ADMIN')
   if (!isAdmin) throw new Error("You must be an admin to invite members");
 
-  const { limits } = await getAuthorizationWithProject(projectId)
-  if (membership.length >= limits['teamInvite']) {
+  if (memberCount >= limits['teamInvite']) {
     throw new Error(
       `Limit reached for inviting new member. Upgrade your plan.`
     );
