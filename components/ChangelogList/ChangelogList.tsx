@@ -50,7 +50,11 @@ export function ChangelogList({ entries, userId, keepOpen }: ChangelogListProps)
 
   return (
     <Accordion type="multiple" className="space-y-4"
-      value={keepOpen ? [entries[0].id] : undefined}
+      // `value` (controlled) with no onValueChange would freeze the accordion
+      // open/closed forever, since nothing would ever update it back.
+      // `defaultValue` (uncontrolled) achieves the same "open the first entry
+      // initially" intent while keeping it interactive.
+      defaultValue={keepOpen ? [entries[0].id] : undefined}
     >
       {entries.map((entry) => {
         const config = categoryConfig[entry.category] || categoryConfig.new_feature

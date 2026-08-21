@@ -88,6 +88,10 @@ export async function* askProductAdvisorStream(
       stream: false, // we stream manually after tool calls are done
       max_tokens: 1500,
       temperature: 0.3, // lower = more consistent, factual responses
+    }, {
+      // A hung upstream call would otherwise leave the streaming HTTP
+      // response to the browser open indefinitely.
+      timeout: 30_000,
     })
 
     const message = response.choices[0].message
