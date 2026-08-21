@@ -158,6 +158,14 @@ export function NewFeatureRequest({ projectId, tags, user }: { projectId: string
                   <div
                     key={f.id}
                     onClick={() => {
+                      // Same protocol FeatureList uses to open a feature from
+                      // inside the widget iframe — this card was styled as
+                      // clickable but never actually did anything.
+                      window.parent.postMessage({
+                        type: "openfeed:open-feature",
+                        featureId: f.id,
+                      }, "*")
+                      handleCloseNewFeature(false)
                     }}
                     className="cursor-pointer"
                   >

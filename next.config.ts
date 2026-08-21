@@ -37,7 +37,10 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/api/:path*",
+        // Only the embeddable widget's own API needs to be callable from an
+        // arbitrary third-party origin — this used to cover every /api/*
+        // route, including /api/auth/* and the paid advisor endpoint.
+        source: "/api/widget/:path*",
         headers: [{ key: "Access-Control-Allow-Origin", value: "*" }]
       }
     ]
