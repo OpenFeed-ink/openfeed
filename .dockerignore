@@ -5,3 +5,10 @@ npm-debug.log
 *.md
 .next
 .git
+
+# Real secrets — .env/.env.prod exist locally for dev and are gitignored,
+# but nothing stopped `docker build .` from baking them straight into an
+# image layer. Real config is injected at runtime via Fly secrets instead.
+.env
+.env.*
+!.env.example

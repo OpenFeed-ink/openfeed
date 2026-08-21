@@ -15,6 +15,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "type-check": "tsc --noEmit",
     "generate": "drizzle-kit generate",
     "pushdb": "drizzle-kit push --force",
     "email:dev": "email dev",

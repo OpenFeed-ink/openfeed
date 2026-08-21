@@ -32,6 +32,11 @@ jobs:
       - name: Build Test
         run: npm run build
         env:
+          # lib/auth.ts fails fast at module load if this is unset (by
+          # design — no insecure fallback), which next build's page-data
+          # collection phase triggers. A throwaway value is fine here: this
+          # step only checks that the app builds, no real auth ever happens.
+          BETTER_AUTH_SECRET: ci-build-test-placeholder
           NEXT_PUBLIC_PADDLE_ENV: ${{ secrets.NEXT_PUBLIC_PADDLE_ENV }}
           NEXT_PUBLIC_PADDLE_SUCCESSURL: ${{ secrets.NEXT_PUBLIC_PADDLE_SUCCESSURL }}
           NEXT_PUBLIC_PADDLE_CLIENT_TOKEN: ${{ secrets.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN }}
