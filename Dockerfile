@@ -70,6 +70,16 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/migrate.mjs ./scripts/migrate.mjs
 
+# scripts/migrate.mjs isn't imported by any Next.js route/page, so Next's
+# standalone tracing has no way to know it exists and doesn't include its
+# dependencies — the release_command crashed in production with
+# ERR_MODULE_NOT_FOUND for drizzle-orm because of exactly this. Both
+# packages have zero dependencies of their own (verified against their
+# package.json), so copying just these two directories from the builder's
+# full node_modules is sufficient — no transitive chain to chase.
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/postgres ./node_modules/postgres
+
 RUN mkdir -p /app/.next/cache && chown -R nextjs:nodejs /app/.next
 
 EXPOSE 8080
