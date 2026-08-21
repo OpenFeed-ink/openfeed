@@ -1,6 +1,5 @@
 import { FeatureList } from "@/components/FeatureLists/FeatureList";
 import ThemeController from "@/components/ThemeController";
-import { UpvoteProvider } from "@/contexts/UpvoteProvider";
 import { databaseDrizzle } from "@/db";
 import { cookies } from 'next/headers'
 import { notFound } from "next/navigation";
@@ -51,26 +50,17 @@ export default async function page({ params, searchParams }: { params: Promise<{
 
   return (
     <ThemeController theme={theme}>
-      <UpvoteProvider
-        initialVotes={Object.fromEntries(
-          features.map((f) => [
-            f.id,
-            { voted: f.upvotes.length > 0, count: f.upvotesCount },
-          ])
-        )}
-      >
-        <div className="w-full min-h-screen overflow-y-auto">
-          <div className="space-y-4 py-2 w-full max-w-3xl mx-auto">
-            <FeatureList
-              features={features}
-              totalPages={totalPages}
-              currentPage={currentPage}
-              userId={userId}
-              pub={true}
-            />
-          </div>
+      <div className="w-full min-h-screen overflow-y-auto">
+        <div className="space-y-4 py-2 w-full max-w-3xl mx-auto">
+          <FeatureList
+            features={features}
+            totalPages={totalPages}
+            currentPage={currentPage}
+            userId={userId}
+            pub={true}
+          />
         </div>
-      </UpvoteProvider>
+      </div>
     </ThemeController>
   )
 }

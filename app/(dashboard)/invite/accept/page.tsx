@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,11 +39,13 @@ export default async function AcceptInvitePage({ searchParams }: PageProps) {
     );
   }
 
-  // Find invitation
+  // Find invitation — must not have been accepted already, otherwise a used
+  // token stays valid until expiry and a removed member could replay their old
+  // invite link to silently rejoin the project.
   const invite = await databaseDrizzle.query.invitation.findFirst({
     where: and(
       eq(invitation.token, token),
-      // eq(invitation.acceptedAt, null)
+      isNull(invitation.acceptedAt)
     ),
   });
 

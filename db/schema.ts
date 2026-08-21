@@ -114,12 +114,17 @@ export const invitation = pgTable("invitation", {
   projectId: text("project_id")
     .notNull()
     .references(() => project.id, { onDelete: "cascade" }),
-  email: text("email").unique().notNull(),
+  // Unique per project, not globally — a person can be invited to more than
+  // one project. A global unique constraint let a second invite silently
+  // overwrite/hijack the first project's pending invitation.
+  email: text("email").notNull(),
   role: roleEnum("role").notNull(),
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   acceptedAt: timestamp("accepted_at", { withTimezone: true }),
-});
+}, (t) => [
+  unique("invitation_project_email_unique").on(t.projectId, t.email),
+]);
 
 export const featureStatusEnum = pgEnum("feature_statu", [
   "under_review",

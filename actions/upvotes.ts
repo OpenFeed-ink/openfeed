@@ -70,7 +70,20 @@ export async function upvotesAction(_: FormState, formData: FormData) {
     revalidatePath(`/projects/${projectId}/feature-requests`);
 
     return toFormState("SUCCESS", "update upvote")
-  } catch (e) {
+  } catch (e: any) {
+    // Two toggles for the same feature+voter racing (e.g. a fast double-click
+    // firing two requests) can both pass the "no existing vote" check and
+    // both attempt to insert — the loser hits the unique constraint. That's
+    // not a real failure: the vote is already registered by the winner, so
+    // treat it as success instead of surfacing a raw DB error to the user.
+    const pgCode = e?.code ?? e?.cause?.code
+    if (pgCode === "23505") {
+      const raceProjectId = formData.get("projectId")
+      if (typeof raceProjectId === "string") {
+        revalidatePath(`/projects/${raceProjectId}/feature-requests`);
+      }
+      return toFormState("SUCCESS", "update upvote")
+    }
     return fromErrorToFormState(e)
   }
 }

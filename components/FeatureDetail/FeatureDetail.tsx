@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
-import { feature } from "@/db/schema";
+import { and, count, eq } from "drizzle-orm";
+import { feature, tag } from "@/db/schema";
 import { Separator } from "@/components/ui/separator";
 import { databaseDrizzle } from "@/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,40 +21,51 @@ export async function FeatureDetail({ featureId, user, projectId, pub }: {
   user: Author,
   pub?:boolean
 }) {
-  const featureData = await databaseDrizzle.query.feature.findFirst({
-    where: eq(feature.id, featureId),
-    with: {
-      author: {
-        columns: {
-          id: true,
-          name: true,
-        },
-        with: {
-          usersProjects: {
-            where: (up, ops) => ops.eq(up.projectId, projectId),
-            columns: { role: true, userId: true },
+  const [featureData, availableTags, [{ projectFeatureCount }]] = await Promise.all([
+    databaseDrizzle.query.feature.findFirst({
+      // Scoped by projectId too — without it, any visitor who knows a feature's id
+      // could load it through a different project's /pub pages.
+      where: and(eq(feature.id, featureId), eq(feature.projectId, projectId)),
+      with: {
+        author: {
+          columns: {
+            id: true,
+            name: true,
+          },
+          with: {
+            usersProjects: {
+              where: (up, ops) => ops.eq(up.projectId, projectId),
+              columns: { role: true, userId: true },
+            }
           }
-        }
-      },
-      comments: {
-        with: {
-          author: {
-            columns: {
-              id: true,
-              name: true,
-              image: true,
+        },
+        comments: {
+          with: {
+            author: {
+              columns: {
+                id: true,
+                name: true,
+                image: true,
+              },
             },
           },
+          orderBy: (comments, { desc }) => [desc(comments.createdAt)],
         },
-        orderBy: (comments, { desc }) => [desc(comments.createdAt)],
+        upvotes: {
+          where: (u, ops) => ops.eq(u.voterToken, user.id),
+          columns: { id: true },
+        },
+        tags: { with: { tag: true } },
       },
-      upvotes: {
-        where: (u, ops) => ops.eq(u.voterToken, user.id),
-        columns: { id: true },
-      },
-      tags: { with: { tag: true } },
-    },
-  });
+    }),
+    // Edit dialog needs the project's full tag list, not just this feature's
+    // own tags, to offer them in the tag selector.
+    databaseDrizzle.query.tag.findMany({ where: eq(tag.projectId, projectId) }),
+    databaseDrizzle
+      .select({ projectFeatureCount: count() })
+      .from(feature)
+      .where(eq(feature.projectId, projectId)),
+  ]);
 
   if (!featureData) return <NoFeatureRequest />
   const commentsTree = buildCommentTree(featureData.comments, featureData.pinnedComment)
@@ -100,10 +111,10 @@ export async function FeatureDetail({ featureId, user, projectId, pub }: {
             <UpsertFeature
               projectId={featureData.projectId}
               feature={featureData}
-              availableTags={[]}
+              availableTags={availableTags}
               userId={user.id}
               userName={user.name}
-              projectFeatureCount={0}
+              projectFeatureCount={projectFeatureCount}
             />
             <DeleteFeature
               id={featureData.id}

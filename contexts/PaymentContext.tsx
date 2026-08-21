@@ -1,6 +1,6 @@
 "use client"
 import { Environments, initializePaddle, Paddle } from "@paddle/paddle-js";
-import { ReactNode, createContext, useContext, useEffect, useState } from "react";
+import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter } from 'next/navigation'
 
 type Plan = "Starter" | "Growth" | "Scale"
@@ -38,7 +38,7 @@ export const PaymentProvider = ({ redirectTo, children }: { redirectTo?: string,
     loadPaddleScript();
   }, []);
 
-  const openStarterCheckout = () => {
+  const openStarterCheckout = useCallback(() => {
     paddle?.Checkout.open({
       items: [
         {
@@ -50,9 +50,9 @@ export const PaymentProvider = ({ redirectTo, children }: { redirectTo?: string,
         successUrl: process.env.NEXT_PUBLIC_PADDLE_SUCCESSURL
       }
     });
-  };
+  }, [paddle]);
 
-  const openGrowthCheckout = () => {
+  const openGrowthCheckout = useCallback(() => {
     paddle?.Checkout.open({
       items: [
         {
@@ -64,9 +64,9 @@ export const PaymentProvider = ({ redirectTo, children }: { redirectTo?: string,
         successUrl: process.env.NEXT_PUBLIC_PADDLE_SUCCESSURL!
       }
     });
-  };
+  }, [paddle]);
 
-  const openScaleCheckout = () => {
+  const openScaleCheckout = useCallback(() => {
     paddle?.Checkout.open({
       items: [
         {
@@ -78,27 +78,26 @@ export const PaymentProvider = ({ redirectTo, children }: { redirectTo?: string,
         successUrl: process.env.NEXT_PUBLIC_PADDLE_SUCCESSURL!
       }
     });
-  };
+  }, [paddle]);
 
+  const paddlePay = useCallback((plan: Plan) => {
+    if (redirectTo) return push(redirectTo)
+    switch (plan) {
+      case 'Starter':
+        return openStarterCheckout()
+      case "Growth":
+        return openGrowthCheckout()
+      case "Scale":
+        return openScaleCheckout()
+      default:
+        break;
+    }
+  }, [redirectTo, push, openStarterCheckout, openGrowthCheckout, openScaleCheckout]);
+
+  const contextValue = useMemo(() => ({ paddlePay }), [paddlePay]);
 
   return (
-    <PaymentContext.Provider
-      value={{
-        paddlePay: (plan: Plan) => {
-          if (redirectTo) return push(redirectTo)
-          switch (plan) {
-            case 'Starter':
-              return openStarterCheckout()
-            case "Growth":
-              return openGrowthCheckout()
-            case "Scale":
-              return openScaleCheckout()
-            default:
-              break;
-          }
-        }
-      }}
-    >
+    <PaymentContext.Provider value={contextValue}>
       {children}
     </PaymentContext.Provider>)
 }

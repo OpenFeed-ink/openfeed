@@ -128,11 +128,13 @@ export async function toggleRoadmapColumn(_: FormState, formData: FormData) {
 
 
     if (hide) {
-      // Add status to hidden columns array
+      // Add status to hidden columns array, but only if it isn't already
+      // there — a retried/duplicate request would otherwise grow the array
+      // with repeated entries of the same status indefinitely.
       await databaseDrizzle
         .update(project)
         .set({
-          roadmapHiddenColumns: sql`array_append(${project.roadmapHiddenColumns}, ${status})`,
+          roadmapHiddenColumns: sql`CASE WHEN ${status} = ANY(${project.roadmapHiddenColumns}) THEN ${project.roadmapHiddenColumns} ELSE array_append(${project.roadmapHiddenColumns}, ${status}) END`,
         })
         .where(eq(project.id, id));
     } else {

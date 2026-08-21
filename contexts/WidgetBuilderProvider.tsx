@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useTransition } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, useTransition } from "react";
 import type { Config } from "@/type"
 import { saveWidgetConfigAction } from "@/actions/widgets";
 import { EMPTY_FORM_STATE } from "@/lib/zodErrorHandle";
@@ -47,18 +47,23 @@ export function WidgetBuilderProvider({
   const [errors, setErrors] = useState<{ announcementText?: string; actionBtn?: string }>({})
   const [config, setConf] = useState<Config>(orginalConfig)
 
-  const setConfig = (config: Config) => setConf(config)
-
-  const saveConfig = async () => {
+  const saveConfig = useCallback(async () => {
     const form = new FormData()
     form.set('projectId', projectId)
     const result = configSchema.safeParse(config)
 
     if (!result.success) {
       const fieldErrors = z.treeifyError(result.error).properties
+      // treeifyError's type is a union that only sometimes includes `properties`
+      // (a leaf node vs. a nested-object node) — narrow it explicitly instead of
+      // `as any`, which previously let this crash if announcement's node ever
+      // came back as the leaf variant.
+      const announcementErrors = fieldErrors?.announcement as
+        | { errors: string[]; properties?: { text?: { errors: string[] }; actionBtn?: { errors: string[] } } }
+        | undefined
       setErrors({
-        announcementText: (fieldErrors?.announcement as any).properties?.text?.errors?.[0],
-        actionBtn: (fieldErrors?.announcement as any).properties?.actionBtn?.errors?.[0],
+        announcementText: announcementErrors?.properties?.text?.errors?.[0],
+        actionBtn: announcementErrors?.properties?.actionBtn?.errors?.[0],
       })
 
       toast.error("Please fix the errors before saving")
@@ -76,20 +81,26 @@ export function WidgetBuilderProvider({
         toast.success(resp.message)
       }
     })
-  }
+  }, [projectId, config]);
 
+  // setConf from useState is already stable — no need to wrap it. Every
+  // consumer (including SaveStyleBtn, which only cares about pending/
+  // saveConfig) previously re-rendered on every keystroke because this
+  // object was rebuilt every render regardless of what actually changed.
+  const contextValue = useMemo(
+    () => ({
+      config,
+      projectId,
+      pending,
+      setConfig: setConf,
+      saveConfig,
+      errors,
+    }),
+    [config, projectId, pending, saveConfig, errors]
+  )
 
   return (
-    <WidgetBuilderContext.Provider
-      value={{
-        config,
-        projectId,
-        pending,
-        setConfig,
-        saveConfig,
-        errors,
-      }}
-    >
+    <WidgetBuilderContext.Provider value={contextValue}>
       {children}
     </WidgetBuilderContext.Provider>
   );

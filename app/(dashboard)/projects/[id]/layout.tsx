@@ -25,19 +25,22 @@ export default async function ProjectLayout({
 
   if (!session?.user.id) return redirect("/signin")
 
-  const [userProjects, { permissions }] = await Promise.all([databaseDrizzle.query.usersProjects.findMany({
-    where: (up, ops) => ops.eq(up.userId, session.user.id),
-    columns: {
-      role: true,
-    },
-    with: {
-      project: true
-    }
-  }),
-  getProjectPermission(id)
+  // These three don't depend on each other — run them together instead of
+  // adding a full extra round trip to every dashboard navigation.
+  const [userProjects, { permissions }, auth] = await Promise.all([
+    databaseDrizzle.query.usersProjects.findMany({
+      where: (up, ops) => ops.eq(up.userId, session.user.id),
+      columns: {
+        role: true,
+      },
+      with: {
+        project: true
+      }
+    }),
+    getProjectPermission(id),
+    getAuthorizationWithProject(id),
   ])
 
-  const auth = await getAuthorizationWithProject(id);
   const selectedProject = userProjects.find(p => p.project.id === id)
 
   if (!selectedProject) redirect("/projects")

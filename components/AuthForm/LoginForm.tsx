@@ -22,6 +22,7 @@ import { toast } from "sonner"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authClient } from "@/lib/auth-client";
+import { isSafeRedirectPath } from "@/lib/utils";
 import { Logo } from "../Logo";
 import Link from "next/link"
 const fadeUp = {
@@ -72,7 +73,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
         toast.error(error.message || "unkown error")
         return;
       }
-      router.replace(callbackUrl ?? "/projects");
+      router.replace(isSafeRedirectPath(callbackUrl) ? callbackUrl : "/projects");
     });
   };
 

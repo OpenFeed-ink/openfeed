@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
 import type { Permission } from "@/lib/permission/types";
 import { Membership } from "@/type";
 import { PERMISSIONS } from "@/lib/permission/config";
@@ -32,8 +32,13 @@ export function ProjectPermissionProvider({
     return PERMISSIONS[role]
   }, [getUserRole, userId])
 
+  const contextValue = useMemo(
+    () => ({ getUserRole, getPermission }),
+    [getUserRole, getPermission]
+  )
+
   return (
-    <ProjectPermissionContext.Provider value={{getUserRole, getPermission}}>
+    <ProjectPermissionContext.Provider value={contextValue}>
       {children}
     </ProjectPermissionContext.Provider>
   );
