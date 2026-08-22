@@ -21,19 +21,21 @@ primary_region = 'fra'
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  # Was 0 — every idle period (as short as ~7-10 min under real traffic)
-  # let Fly scale to zero machines, so the next visitor (or widget embed
-  # on an external site, which is exactly this bursty/infrequent pattern)
-  # paid a cold Firecracker boot. That boot sometimes took long enough
-  # that the proxy gave up and started a *second* cold machine instead of
-  # waiting, stacking two boot cycles into one request — this is what
-  # produced the ~20s+ load times, not app code being slow. Keeping one
-  # machine always warm removes cold starts for normal traffic entirely.
-  min_machines_running = 1
+  # Deliberately 0: cost matters more than eliminating the occasional cold
+  # start, so a machine is allowed to fully stop when idle instead of
+  # staying warm around the clock.
+  min_machines_running = 0
   processes = ['app']
 
   [[http_service.checks]]
-    grace_period = "10s"
+    # Was 10s, which sat right at the ~8s it actually takes this app to
+    # boot on a shared-cpu-1x machine — close enough that the proxy
+    # sometimes gave up waiting on a legitimately-booting machine and
+    # started a second one instead ("gave up after 15 attempts (8.03s)"
+    # in the logs, then a fresh cold boot on top of the one already in
+    # progress). Widened so a normal cold start has room to finish before
+    # the proxy loses patience with it.
+    grace_period = "25s"
     interval = "30s"
     method = "GET"
     timeout = "5s"
